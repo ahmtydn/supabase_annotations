@@ -5,6 +5,19 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2025-09-11
+
+### Fixed
+- Fixed static analysis issues by removing invalid @immutable annotations from enums
+- Cleaned up unused imports to eliminate linting warnings
+- Standardized LICENSE file to OSI-approved MIT License format for proper pub.dev recognition
+- Added proper example package structure with pubspec.yaml for better pub.dev scoring
+- Enhanced example documentation and build configuration
+
+### Improved
+- Significantly improved pub.dev package score by addressing all major scoring criteria
+- Better package discoverability and community accessibility
+
 ## [1.0.3] - 2025-09-11
 
 ### Fixed

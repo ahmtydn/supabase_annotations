@@ -1,0 +1,15 @@
+targets:
+  $default:
+    builders:
+      supabase_annotations|schema_builder:
+        enabled: true
+        generate_for:
+          include:
+            - lib/**.dart
+            - "*.dart"
+        options:
+          # Example configuration
+          enable_rls_by_default: false
+          add_timestamps: false
+          format_sql: true
+          use_explicit_nullability: true

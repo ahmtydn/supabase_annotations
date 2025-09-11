@@ -5,13 +5,10 @@
 /// comprehensive documentation and validation.
 library;
 
-import 'package:meta/meta.dart';
-
 /// Represents an action to take when a foreign key constraint is triggered.
 ///
 /// Foreign key actions determine what happens to dependent rows when a
 /// referenced row is updated or deleted.
-@immutable
 enum ForeignKeyAction {
   /// Prevents the update or deletion of the referenced row.
   ///

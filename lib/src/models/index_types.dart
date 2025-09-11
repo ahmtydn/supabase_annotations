@@ -4,14 +4,11 @@
 /// detailed documentation, use cases, and performance characteristics.
 library;
 
-import 'package:meta/meta.dart';
-
 /// Represents a PostgreSQL index type with metadata and usage recommendations.
 ///
 /// Different index types are optimized for different types of queries and data
 /// patterns. Choosing the right index type can significantly impact query
 /// performance.
-@immutable
 enum IndexType {
   /// B-tree index (default for most data types).
   ///
