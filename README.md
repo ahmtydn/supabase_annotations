@@ -1,6 +1,6 @@
 # Supabase Annotations
 
-A Dart package that generates PostgreSQL database schemas from annotated Dart classes, designed for Supabase projects.
+A code generator for creating Supabase/PostgreSQL database schemas from Dart model classes. Supports RLS policies, indexes, foreign keys, and schema validation.
 
 ## Features
 
@@ -17,7 +17,7 @@ A Dart package that generates PostgreSQL database schemas from annotated Dart cl
 
 ```yaml
 dependencies:
-  supabase_annotations: ^2.0.0
+  supabase_annotations: ^1.0.0
 
 dev_dependencies:
   build_runner: ^2.4.8
@@ -474,9 +474,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 - 📚 [Documentation](https://pub.dev/packages/supabase_annotations)
-- 🐛 [Issue Tracker](https://github.com/your-repo/issues)
-- 💬 [Discussions](https://github.com/your-repo/discussions)
-- 📧 [Email Support](mailto:support@yourproject.com)
+- 🐛 [Issue Tracker](https://github.com/ahmtydn/supabase_annotations/issues)
+- 💬 [Discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
+- 📧 [Contact](https://github.com/ahmtydn)
 
 ---
 
