@@ -1,4 +1,4 @@
-# Supabase Schema Generator
+# Supabase Annotations
 
 A Dart package that generates PostgreSQL database schemas from annotated Dart classes, designed for Supabase projects.
 
@@ -32,7 +32,7 @@ Create `build.yaml` in your project root:
 targets:
   $default:
     builders:
-      supabase_codegen|schema_builder:
+      supabase_annotations|schema_builder:
         enabled: true
         generate_for:
           include:
@@ -57,7 +57,7 @@ targets:
 ### 3. Define Your Models
 
 ```dart
-import 'package:supabase_codegen/supabase_annotations.dart';
+import 'package:supabase_annotations/supabase_annotations.dart';
 
 @DatabaseTable(
   name: 'users',
@@ -473,7 +473,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📚 [Documentation](https://pub.dev/packages/supabase_codegen)
+- 📚 [Documentation](https://pub.dev/packages/supabase_annotations)
 - 🐛 [Issue Tracker](https://github.com/your-repo/issues)
 - 💬 [Discussions](https://github.com/your-repo/discussions)
 - 📧 [Email Support](mailto:support@yourproject.com)
