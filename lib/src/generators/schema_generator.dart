@@ -550,9 +550,23 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Parses an RLS Policy annotation.
   RLSPolicy _parseRLSPolicyAnnotation(ConstantReader annotation) {
+    final typeReader = annotation.peek('type');
+    if (typeReader == null) {
+      throw InvalidGenerationSourceError(
+        'RLSPolicy annotation must specify a type parameter.',
+      );
+    }
+
+    final policyType = _parseRLSPolicyType(typeReader);
+    if (policyType == null) {
+      throw InvalidGenerationSourceError(
+        'Invalid RLS policy type in annotation.',
+      );
+    }
+
     return RLSPolicy(
       name: annotation.read('name').stringValue,
-      type: _parseRLSPolicyType(annotation.peek('type')!)!,
+      type: policyType,
       roles: annotation
               .peek('roles')
               ?.listValue
@@ -570,17 +584,32 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Parses an RLSPolicyType from annotation.
   RLSPolicyType? _parseRLSPolicyType(ConstantReader typeReader) {
-    final typeValue = typeReader.objectValue;
-    final typeName = typeValue.getField('name')?.toStringValue();
+    try {
+      final typeValue = typeReader.objectValue;
 
-    return switch (typeName) {
-      'all' => RLSPolicyType.all,
-      'select' => RLSPolicyType.select,
-      'insert' => RLSPolicyType.insert,
-      'update' => RLSPolicyType.update,
-      'delete' => RLSPolicyType.delete,
-      _ => null,
-    };
+      // Try to get the enum value directly first
+      if (typeValue.type?.element?.name == 'RLSPolicyType') {
+        final index = typeValue.getField('index')?.toIntValue();
+        if (index != null) {
+          return RLSPolicyType.values[index];
+        }
+      }
+
+      // Fallback to string-based parsing
+      final typeName = typeValue.getField('name')?.toStringValue() ??
+          typeValue.getField('_name')?.toStringValue();
+
+      return switch (typeName) {
+        'all' => RLSPolicyType.all,
+        'select' => RLSPolicyType.select,
+        'insert' => RLSPolicyType.insert,
+        'update' => RLSPolicyType.update,
+        'delete' => RLSPolicyType.delete,
+        _ => null,
+      };
+    } catch (e) {
+      return null;
+    }
   }
 
   /// Processes foreign keys from field annotations.

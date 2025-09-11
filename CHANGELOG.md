@@ -5,6 +5,19 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.6]
+
+### Fixed
+- **Critical**: Fixed RLS Policy annotation parsing - resolved "Null check operator used on a null value" error when processing RLSPolicy annotations
+- **Critical**: Fixed enum value handling in annotation processing - RLSPolicyType and other enums now parse correctly
+- Improved error handling for null annotation values to prevent build failures
+- Enhanced annotation reading safety with proper null checks
+
+### Improved
+- Better error messages for annotation parsing issues
+- More robust handling of optional annotation parameters
+- Enhanced test coverage for RLS policy generation
+
 ## [1.0.5]
 
 ### Fixed
