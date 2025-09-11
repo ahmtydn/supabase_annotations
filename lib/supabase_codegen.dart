@@ -22,7 +22,7 @@
 /// ## Quick Start
 ///
 /// ```dart
-/// import 'package:supabase_schema_generator/supabase_schema_generator.dart';
+/// import 'package:supabase_codegen/supabase_codegen.dart';
 ///
 /// @DatabaseTable(
 ///   name: 'users',
@@ -91,7 +91,7 @@
 /// )
 /// class PrivateDocument { ... }
 /// ```
-library supabase_schema_generator;
+library supabase_codegen;
 
 export 'src/annotations/database_column.dart';
 export 'src/annotations/database_index.dart';

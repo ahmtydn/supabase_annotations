@@ -5,10 +5,10 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:supabase_schema_generator/src/models/column_types.dart';
-import 'package:supabase_schema_generator/src/models/default_values.dart';
-import 'package:supabase_schema_generator/src/models/validators.dart';
-import 'package:supabase_schema_generator/supabase_schema_generator.dart'
+import 'package:supabase_codegen/src/models/column_types.dart';
+import 'package:supabase_codegen/src/models/default_values.dart';
+import 'package:supabase_codegen/src/models/validators.dart';
+import 'package:supabase_codegen/supabase_codegen.dart'
     show DatabaseTable, ForeignKeyAction, IndexType;
 
 /// Annotation for configuring database column properties.

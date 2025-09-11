@@ -10,16 +10,16 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:supabase_schema_generator/src/annotations/database_column.dart';
-import 'package:supabase_schema_generator/src/annotations/database_index.dart';
-import 'package:supabase_schema_generator/src/annotations/database_table.dart';
-import 'package:supabase_schema_generator/src/annotations/foreign_key.dart';
-import 'package:supabase_schema_generator/src/annotations/rls_policy.dart';
-import 'package:supabase_schema_generator/src/models/column_types.dart';
-import 'package:supabase_schema_generator/src/models/default_values.dart';
-import 'package:supabase_schema_generator/src/models/foreign_key_actions.dart';
-import 'package:supabase_schema_generator/src/models/index_types.dart';
-import 'package:supabase_schema_generator/src/models/validators.dart';
+import 'package:supabase_codegen/src/annotations/database_column.dart';
+import 'package:supabase_codegen/src/annotations/database_index.dart';
+import 'package:supabase_codegen/src/annotations/database_table.dart';
+import 'package:supabase_codegen/src/annotations/foreign_key.dart';
+import 'package:supabase_codegen/src/annotations/rls_policy.dart';
+import 'package:supabase_codegen/src/models/column_types.dart';
+import 'package:supabase_codegen/src/models/default_values.dart';
+import 'package:supabase_codegen/src/models/foreign_key_actions.dart';
+import 'package:supabase_codegen/src/models/index_types.dart';
+import 'package:supabase_codegen/src/models/validators.dart';
 
 /// Configuration for the schema generator.
 class SchemaGeneratorConfig {

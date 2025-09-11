@@ -1,7 +1,7 @@
 targets:
   $default:
     builders:
-      supabase_schema_generator|schema_builder:
+      supabase_codegen|schema_builder:
         enabled: true
         generate_for:
           include:
@@ -23,7 +23,7 @@ targets:
 
 builders:
   schema_builder:
-    import: "package:supabase_schema_generator/builder.dart"
+    import: "package:supabase_codegen/builder.dart"
     builder_factories: ["supabaseSchemaBuilder"]
     build_extensions:
       ".dart": [".schema.sql"]

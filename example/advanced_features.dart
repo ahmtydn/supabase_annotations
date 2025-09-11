@@ -1,7 +1,7 @@
 /// Role management system example
 library;
 
-import 'package:supabase_schema_generator/supabase_schema_generator.dart';
+import 'package:supabase_codegen/supabase_codegen.dart';
 
 /// User roles table
 @DatabaseTable(

@@ -5,11 +5,11 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:supabase_schema_generator/src/annotations/database_index.dart';
-import 'package:supabase_schema_generator/src/annotations/rls_policy.dart';
-import 'package:supabase_schema_generator/src/models/partition_strategy.dart';
-import 'package:supabase_schema_generator/src/models/table_constraints.dart';
-import 'package:supabase_schema_generator/src/models/validators.dart';
+import 'package:supabase_codegen/src/annotations/database_index.dart';
+import 'package:supabase_codegen/src/annotations/rls_policy.dart';
+import 'package:supabase_codegen/src/models/partition_strategy.dart';
+import 'package:supabase_codegen/src/models/table_constraints.dart';
+import 'package:supabase_codegen/src/models/validators.dart';
 
 /// Annotation for marking a Dart class as a database table.
 ///
