@@ -91,7 +91,7 @@
 /// )
 /// class PrivateDocument { ... }
 /// ```
-library supabase_codegen;
+library;
 
 export 'src/annotations/database_column.dart';
 export 'src/annotations/database_index.dart';

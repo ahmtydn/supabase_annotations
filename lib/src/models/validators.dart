@@ -3,7 +3,7 @@
 /// This library provides a comprehensive validation framework for database
 /// columns, allowing type-safe validation rules that can be applied at
 /// compile-time and runtime.
-library validators;
+library;
 
 /// Base class for all column validators.
 ///
