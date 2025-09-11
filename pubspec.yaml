@@ -6,6 +6,7 @@ description: >-
 version: 1.0.6
 homepage: https://github.com/ahmtydn/supabase_annotations
 repository: https://github.com/ahmtydn/supabase_annotations
+issue_tracker: https://github.com/ahmtydn/supabase_annotations/issues
 
 environment:
   sdk: '>=3.2.0 <4.0.0'
