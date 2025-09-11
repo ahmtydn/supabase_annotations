@@ -13,6 +13,43 @@ import 'package:meta/meta.dart';
 /// for the column.
 @immutable
 abstract class DefaultValue {
+  /// String literal default value.
+  ///
+  /// **Parameters:**
+  /// - [value]: The string value to use as default
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.string('pending') // DEFAULT 'pending'
+  /// DefaultValue.string('Unknown') // DEFAULT 'Unknown'
+  /// ```
+  const factory DefaultValue.string(String value) = _StringDefault;
+
+  /// Numeric literal default value.
+  ///
+  /// **Parameters:**
+  /// - [value]: The numeric value to use as default
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.number(0)     // DEFAULT 0
+  /// DefaultValue.number(42.5)  // DEFAULT 42.5
+  /// DefaultValue.number(-1)    // DEFAULT -1
+  /// ```
+  const factory DefaultValue.number(num value) = _NumericDefault;
+
+  /// Boolean literal default value.
+  ///
+  /// **Parameters:**
+  /// - [value]: The boolean value to use as default
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.boolean(value: true)  // DEFAULT true
+  /// DefaultValue.boolean(value: false) // DEFAULT false
+  /// ```
+  const factory DefaultValue.boolean({required bool value}) = _BooleanDefault;
+
   /// Creates a default value with the specified SQL expression.
   const DefaultValue._(this.sqlExpression, this.description);
 
@@ -34,46 +71,6 @@ abstract class DefaultValue {
   /// ALTER TABLE users ALTER COLUMN middle_name SET DEFAULT NULL;
   /// ```
   static const none = _LiteralDefault('NULL', 'Explicit NULL value');
-
-  /// String literal default value.
-  ///
-  /// **Parameters:**
-  /// - [value]: The string value to use as default
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.string('pending') // DEFAULT 'pending'
-  /// DefaultValue.string('Unknown') // DEFAULT 'Unknown'
-  /// ```
-  static DefaultValue string(String value) =>
-      _LiteralDefault("'$value'", 'String literal: $value');
-
-  /// Numeric literal default value.
-  ///
-  /// **Parameters:**
-  /// - [value]: The numeric value to use as default
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.number(0)     // DEFAULT 0
-  /// DefaultValue.number(42.5)  // DEFAULT 42.5
-  /// DefaultValue.number(-1)    // DEFAULT -1
-  /// ```
-  static DefaultValue number(num value) =>
-      _LiteralDefault('$value', 'Numeric literal: $value');
-
-  /// Boolean literal default value.
-  ///
-  /// **Parameters:**
-  /// - [value]: The boolean value to use as default
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.boolean(value: true)  // DEFAULT true
-  /// DefaultValue.boolean(value: false) // DEFAULT false
-  /// ```
-  static DefaultValue boolean({required bool value}) =>
-      _LiteralDefault('$value', 'Boolean literal: $value');
 
   // Timestamp and date defaults
 
@@ -271,20 +268,6 @@ abstract class DefaultValue {
 
   // Mathematical defaults
 
-  /// Zero (0) as default.
-  static const zero = _LiteralDefault('0', 'Zero');
-
-  /// One (1) as default.
-  static const one = _LiteralDefault('1', 'One');
-
-  /// Negative one (-1) as default.
-  static const negativeOne = _LiteralDefault('-1', 'Negative one');
-
-  // String defaults
-
-  /// Empty string as default.
-  static const emptyString = _LiteralDefault("''", 'Empty string');
-
   // Custom expression
 
   /// Custom SQL expression as default.
@@ -349,44 +332,9 @@ abstract class DefaultValue {
       // Array defaults
       _ when this == emptyArray => normalizedType.contains('[]'),
 
-      // Numeric defaults
-      _ when (this == zero || this == one || this == negativeOne) =>
-        _isNumericType(normalizedType),
-
-      // String defaults
-      _ when (this == emptyString) => _isStringType(normalizedType),
-
-      // Boolean defaults are handled by the boolean() factory
-
       // Custom defaults and literals - assume valid
       _ => true,
     };
-  }
-
-  /// Checks if a column type is numeric.
-  static bool _isNumericType(String type) {
-    return const [
-      'INTEGER',
-      'BIGINT',
-      'SMALLINT',
-      'SERIAL',
-      'BIGSERIAL',
-      'DECIMAL',
-      'NUMERIC',
-      'REAL',
-      'DOUBLE PRECISION',
-      'FLOAT',
-    ].any(type.contains);
-  }
-
-  /// Checks if a column type is string-based.
-  static bool _isStringType(String type) {
-    return const [
-      'TEXT',
-      'VARCHAR',
-      'CHAR',
-      'CHARACTER',
-    ].any(type.contains);
   }
 
   /// Gets the required database extensions for this default value.
@@ -453,4 +401,22 @@ class _FunctionDefault extends DefaultValue {
 /// Implementation for custom expression default values.
 class _CustomDefault extends DefaultValue {
   const _CustomDefault(super.expression, super.description) : super._();
+}
+
+/// Implementation for string default values.
+class _StringDefault extends DefaultValue {
+  const _StringDefault(String value)
+      : super._("'$value'", 'String literal: $value');
+}
+
+/// Implementation for numeric default values.
+class _NumericDefault extends DefaultValue {
+  const _NumericDefault(num value)
+      : super._('$value', 'Numeric literal: $value');
+}
+
+/// Implementation for boolean default values.
+class _BooleanDefault extends DefaultValue {
+  const _BooleanDefault({required bool value})
+      : super._('$value', 'Boolean literal: $value');
 }

@@ -136,7 +136,8 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
       // Extract class information
       final className = element.name;
-      final tableName = tableConfig.name ?? _toSnakeCase(className);
+      final tableName =
+          tableConfig.name ?? _toSnakeCase(className ?? 'UnknownTable');
 
       // Process fields and annotations
       final fields = _processFields(element);
@@ -245,7 +246,9 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       // Check if created_at and updated_at columns already exist
       final existingColumnNames = columns
           .map(
-            (c) => c.annotation?.getEffectiveName(c.field.name) ?? c.field.name,
+            (c) =>
+                c.annotation?.getEffectiveName(c.field.name ?? 'unknown') ??
+                (c.field.name ?? 'unknown'),
           )
           .toSet();
 
@@ -283,7 +286,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Gets the DatabaseColumn annotation for a field.
   DatabaseColumn? _getColumnAnnotation(FieldElement field) {
-    for (final annotation in field.metadata) {
+    for (final annotation in field.metadata.annotations) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'DatabaseColumn') {
         return _parseDatabaseColumnAnnotation(
@@ -296,7 +299,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Gets the ForeignKey annotation for a field.
   ForeignKey? _getForeignKeyAnnotation(FieldElement field) {
-    for (final annotation in field.metadata) {
+    for (final annotation in field.metadata.annotations) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'ForeignKey') {
         return _parseForeignKeyAnnotation(
@@ -446,7 +449,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   List<DatabaseIndex> _processIndexes(ClassElement classElement) {
     final indexes = <DatabaseIndex>[];
 
-    for (final annotation in classElement.metadata) {
+    for (final annotation in classElement.metadata.annotations) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'DatabaseIndex') {
         final indexAnnotation = _parseDatabaseIndexAnnotation(
@@ -522,7 +525,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   List<RLSPolicy> _processPolicies(ClassElement classElement) {
     final policies = <RLSPolicy>[];
 
-    for (final annotation in classElement.metadata) {
+    for (final annotation in classElement.metadata.annotations) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'RLSPolicy') {
         final policyAnnotation = _parseRLSPolicyAnnotation(
@@ -585,7 +588,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     }
 
     // Add composite foreign keys from class annotations
-    for (final annotation in classElement.metadata) {
+    for (final annotation in classElement.metadata.annotations) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'ForeignKey') {
         final foreignKeyAnnotation = _parseForeignKeyAnnotation(
@@ -616,7 +619,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final annotation = field.annotation ?? const DatabaseColumn();
 
       // Get effective column name
-      final columnName = annotation.getEffectiveName(fieldName);
+      final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
 
       // Build column definition
       final columnDef = <String>['  $columnName', annotation.getFullSqlType()];

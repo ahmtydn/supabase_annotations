@@ -250,7 +250,7 @@ class Post {
     name: 'view_count',
     type: ColumnType.integer,
     isNullable: false,
-    defaultValue: DefaultValue.zero,
+    defaultValue: DefaultValue.number(0),
     comment: 'Number of views',
   )
   int viewCount = 0;

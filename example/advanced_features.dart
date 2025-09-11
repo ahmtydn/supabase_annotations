@@ -81,7 +81,7 @@ class UserRole {
   @DatabaseColumn(
     type: ColumnType.smallint,
     isNullable: false,
-    defaultValue: DefaultValue.zero,
+    defaultValue: DefaultValue.number(0),
     comment: 'Role hierarchy level (higher = more permissions)',
     validators: [
       RangeValidator(min: 0, max: 100),

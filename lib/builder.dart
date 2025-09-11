@@ -4,7 +4,6 @@
 /// when processing annotated Dart classes.
 library;
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 import 'package:supabase_annotations/src/annotations/database_table.dart';
@@ -37,7 +36,7 @@ class _SupabaseSchemaBuilder implements Builder {
   @override
   Future<void> build(BuildStep buildStep) async {
     final generator = SupabaseSchemaGenerator(config);
-    const checker = TypeChecker.fromRuntime(DatabaseTable);
+    const checker = TypeChecker.typeNamed(DatabaseTable);
 
     // Read the input file
     final inputId = buildStep.inputId;
@@ -47,8 +46,8 @@ class _SupabaseSchemaBuilder implements Builder {
     final sqlOutput = StringBuffer();
     var hasAnnotatedClasses = false;
 
-    for (final element in library.topLevelElements) {
-      if (element is ClassElement && checker.hasAnnotationOfExact(element)) {
+    for (final element in library.classes) {
+      if (checker.hasAnnotationOfExact(element)) {
         hasAnnotatedClasses = true;
         try {
           final annotation = checker.firstAnnotationOfExact(element);
