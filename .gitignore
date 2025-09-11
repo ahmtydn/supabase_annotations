@@ -1,2 +1,19 @@
+# Build outputs
 *.g.dart
 *.sql
+*.schema.dart
+
+# Generated files
+.dart_tool/
+.packages
+build/
+pubspec.lock
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
