@@ -166,8 +166,14 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       }
 
       // 3. Add foreign key constraints
-      for (final foreignKey in foreignKeys) {
-        sqlComponents.add(foreignKey.generateSql(tableName));
+      for (final field in fields) {
+        if (field.foreignKey != null) {
+          final fieldName = field.field.name ?? 'unknown';
+          final columnName =
+              field.annotation?.getEffectiveName(fieldName) ?? fieldName;
+          sqlComponents
+              .add(field.foreignKey!.generateSql(tableName, columnName));
+        }
       }
 
       // 4. Enable RLS if configured
@@ -239,9 +245,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       );
 
       columns.add(columnInfo);
-    }
-
-    // Add automatic timestamp columns if configured
+    } // Add automatic timestamp columns if configured
     if (config.addTimestamps) {
       // Check if created_at and updated_at columns already exist
       final existingColumnNames = columns
@@ -312,9 +316,11 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Parses a DatabaseColumn annotation.
   DatabaseColumn _parseDatabaseColumnAnnotation(ConstantReader annotation) {
+    final type = _parseColumnType(annotation.peek('type'));
+
     return DatabaseColumn(
       name: annotation.peek('name')?.stringValue,
-      type: _parseColumnType(annotation.peek('type')),
+      type: type,
       isNullable: annotation.peek('isNullable')?.boolValue ?? true,
       isPrimaryKey: annotation.peek('isPrimaryKey')?.boolValue ?? false,
       isUnique: annotation.peek('isUnique')?.boolValue ?? false,
@@ -386,30 +392,34 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     if (typeReader == null) return null;
 
     final typeValue = typeReader.objectValue;
-    final typeName = typeValue.type?.element?.name;
+    final sqlType = typeValue.getField('sqlType')?.toStringValue();
 
-    // This is a simplified parser - in a real implementation,
-    // you'd need to handle all the static methods of ColumnType
-    return switch (typeName) {
-      'text' => ColumnType.text,
-      'varchar' => ColumnType.varchar(),
-      'uuid' => ColumnType.uuid,
-      'integer' => ColumnType.integer,
-      'bigint' => ColumnType.bigint,
-      'boolean' => ColumnType.boolean,
-      'timestampWithTimeZone' => ColumnType.timestampWithTimeZone,
-      'timestamp' => ColumnType.timestamp,
-      'date' => ColumnType.date,
-      'time' => ColumnType.time,
-      'decimal' => ColumnType.decimal(),
-      'real' => ColumnType.real,
-      'doublePrecision' => ColumnType.doublePrecision,
-      'serial' => ColumnType.serial,
-      'bigserial' => ColumnType.bigserial,
-      'jsonb' => ColumnType.jsonb,
-      'json' => ColumnType.json,
-      'bytea' => ColumnType.bytea,
-      _ => null,
+    if (sqlType == null) return null;
+
+    // Map SQL type back to ColumnType
+    return switch (sqlType) {
+      'TEXT' => ColumnType.text,
+      'UUID' => ColumnType.uuid,
+      'INTEGER' => ColumnType.integer,
+      'BIGINT' => ColumnType.bigint,
+      'SMALLINT' => ColumnType.smallint,
+      'BOOLEAN' => ColumnType.boolean,
+      'TIMESTAMP WITH TIME ZONE' => ColumnType.timestampWithTimeZone,
+      'TIMESTAMP' => ColumnType.timestamp,
+      'DATE' => ColumnType.date,
+      'TIME' => ColumnType.time,
+      'REAL' => ColumnType.real,
+      'DOUBLE PRECISION' => ColumnType.doublePrecision,
+      'SERIAL' => ColumnType.serial,
+      'BIGSERIAL' => ColumnType.bigserial,
+      'JSONB' => ColumnType.jsonb,
+      'JSON' => ColumnType.json,
+      'BYTEA' => ColumnType.bytea,
+      String() when sqlType.startsWith('VARCHAR') => ColumnType.varchar(),
+      String() when sqlType.startsWith('CHAR') => ColumnType.char(1),
+      String() when sqlType.startsWith('DECIMAL') => ColumnType.decimal(),
+      String() when sqlType.startsWith('NUMERIC') => ColumnType.decimal(),
+      _ => ColumnType.text, // Default fallback
     };
   }
 
@@ -614,6 +624,19 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     final columnDefinitions = <String>[];
     final primaryKeyColumns = <String>[];
 
+    // First pass: collect primary key columns
+    for (final field in fields) {
+      final annotation = field.annotation ?? const DatabaseColumn();
+      if (annotation.isPrimaryKey) {
+        final fieldName = field.field.name;
+        final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+        primaryKeyColumns.add(columnName);
+      }
+    }
+
+    final hasCompositeKey = primaryKeyColumns.length > 1;
+
+    // Second pass: generate column definitions
     for (final field in fields) {
       final fieldName = field.field.name;
       final annotation = field.annotation ?? const DatabaseColumn();
@@ -624,22 +647,23 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       // Build column definition
       final columnDef = <String>['  $columnName', annotation.getFullSqlType()];
 
-      // Add constraints with configuration
-      final constraints = _getColumnConstraints(annotation);
+      // Add constraints with configuration (skip PRIMARY KEY for composite keys)
+      final constraints = _getColumnConstraints(annotation, hasCompositeKey);
       columnDef.addAll(constraints);
 
       columnDefinitions.add(columnDef.join(' '));
-
-      // Track primary key columns
-      if (annotation.isPrimaryKey) {
-        primaryKeyColumns.add(columnName);
-      }
     }
 
-    lines.addAll(columnDefinitions);
+    // Add column definitions with proper comma separation
+    for (var i = 0; i < columnDefinitions.length; i++) {
+      final isLast = i == columnDefinitions.length - 1;
+      final needsComma = !isLast || hasCompositeKey;
+
+      lines.add(columnDefinitions[i] + (needsComma ? ',' : ''));
+    }
 
     // Add composite primary key if multiple columns
-    if (primaryKeyColumns.length > 1) {
+    if (hasCompositeKey) {
       lines.add('  PRIMARY KEY (${primaryKeyColumns.join(', ')})');
     }
 
@@ -666,8 +690,18 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Formats SQL for better readability.
   String _formatSql(String sql) {
-    // Basic SQL formatting - can be enhanced
-    return sql.replaceAll(RegExp(r'\s+'), ' ').replaceAll(';', ';\n').trim();
+    // Basic SQL formatting with proper line breaks
+    return sql
+        .replaceAll(RegExp(r'\s+'), ' ') // Normalize whitespace
+        .replaceAll(';', ';\n') // Add line breaks after statements
+        .replaceAll('CREATE TABLE', '\nCREATE TABLE')
+        .replaceAll('CREATE INDEX', '\nCREATE INDEX')
+        .replaceAll('ALTER TABLE', '\nALTER TABLE')
+        .replaceAll('COMMENT ON', '\nCOMMENT ON')
+        .replaceAll(RegExp(r'^\s+'), '') // Remove leading whitespace
+        .replaceAll(
+            RegExp(r'\n\s*\n'), '\n\n') // Normalize multiple line breaks
+        .trim();
   }
 
   /// Parses validators from annotation list.
@@ -739,10 +773,18 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     // Validate index columns exist
     for (final index in indexes) {
       final fieldNames = fields.map((f) => f.field.name).toSet();
+      final columnNames = fields
+          .map((f) =>
+              f.annotation?.getEffectiveName(f.field.name ?? 'unknown') ??
+              f.field.name)
+          .toSet();
+
       for (final columnName in index.columns) {
-        if (!fieldNames.contains(columnName)) {
+        if (!fieldNames.contains(columnName) &&
+            !columnNames.contains(columnName)) {
           throw InvalidGenerationSourceError(
-            'Index $index.name references non-existent column: $columnName in table $tableName',
+            'Index ${index.name} references '
+            'non-existent column: $columnName in table $tableName',
           );
         }
       }
@@ -759,10 +801,12 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   }
 
   /// Gets column constraints with configuration-aware nullability handling.
-  List<String> _getColumnConstraints(DatabaseColumn annotation) {
+  List<String> _getColumnConstraints(DatabaseColumn annotation,
+      [bool hasCompositeKey = false]) {
     final constraints = <String>[];
 
-    if (annotation.isPrimaryKey) {
+    // Only add PRIMARY KEY constraint for single-column primary keys
+    if (annotation.isPrimaryKey && !hasCompositeKey) {
       constraints.add('PRIMARY KEY');
     }
 

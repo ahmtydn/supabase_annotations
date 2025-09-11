@@ -692,7 +692,16 @@ class DatabaseIndex {
       parts.add('WHERE $condition');
     }
 
-    return '${parts.join(' ')};';
+    final sql = '${parts.join(' ')};';
+
+    // Add comment if provided
+    if (comment != null && comment!.isNotEmpty) {
+      final escapedComment = comment!.replaceAll("'", "''");
+      final commentSql = "COMMENT ON INDEX $indexName IS '$escapedComment';";
+      return '$sql\n$commentSql';
+    }
+
+    return sql;
   }
 
   /// Returns a string representation of this index configuration.

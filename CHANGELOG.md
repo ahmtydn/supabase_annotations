@@ -5,6 +5,22 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.5] - 2025-09-11
+
+### Fixed
+- **Critical**: Fixed index column name mapping issues - indexes now properly recognize database column names vs field names
+- **Critical**: Fixed column type parsing - all column types (UUID, TEXT, JSONB, TIMESTAMP WITH TIME ZONE, etc.) now generate correctly
+- **Critical**: Fixed foreign key column references - foreign keys now include proper column names instead of empty references
+- **Critical**: Fixed composite primary key duplication - individual columns no longer get PRIMARY KEY constraint when part of composite key
+- Fixed SQL formatting issues - proper line breaks and comma separation between columns
+- Fixed missing index comments in generated SQL
+
+### Improved
+- Enhanced SQL readability with proper formatting and structure
+- Better error handling for null values in annotation processing
+- Improved validation for database schema generation
+- Added comprehensive test coverage for edge cases
+
 ## [1.0.4] - 2025-09-11
 
 ### Fixed

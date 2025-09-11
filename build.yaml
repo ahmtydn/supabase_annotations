@@ -1,7 +1,7 @@
 targets:
   $default:
     builders:
-      supabase_codegen|schema_builder:
+      supabase_annotations|schema_builder:
         enabled: true
         generate_for:
           include:
