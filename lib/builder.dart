@@ -7,8 +7,8 @@ library;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:supabase_codegen/src/annotations/database_table.dart';
-import 'package:supabase_codegen/src/generators/schema_generator.dart';
+import 'package:supabase_annotations/src/annotations/database_table.dart';
+import 'package:supabase_annotations/src/generators/schema_generator.dart';
 
 /// Creates a builder for generating Supabase schemas.
 ///

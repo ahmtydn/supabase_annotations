@@ -1,7 +1,7 @@
 /// Simple comprehensive example showing all Supabase Schema Generator features
 library;
 
-import 'package:supabase_codegen/supabase_codegen.dart';
+import 'package:supabase_annotations/supabase_annotations.dart';
 
 /// Basic User model with essential features
 @DatabaseTable(

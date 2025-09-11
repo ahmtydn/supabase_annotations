@@ -23,7 +23,7 @@ targets:
 
 builders:
   schema_builder:
-    import: "package:supabase_codegen/builder.dart"
+    import: "package:supabase_annotations/builder.dart"
     builder_factories: ["supabaseSchemaBuilder"]
     build_extensions:
       ".dart": [".schema.sql"]

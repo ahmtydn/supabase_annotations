@@ -1,11 +1,11 @@
-name: supabase_codegen
+name: supabase_annotations
 description: >-
   A code generator for creating Supabase/PostgreSQL database schemas 
   from Dart model classes. Supports RLS policies, indexes, 
   foreign keys, and schema validation.
-version: 2.0.0
-homepage: https://github.com/ahmtydn/supabase_codegen
-repository: https://github.com/ahmtydn/supabase_codegen
+version: 1.0.0
+homepage: https://github.com/ahmtydn/supabase_annotations
+repository: https://github.com/ahmtydn/supabase_annotations
 
 environment:
   sdk: '>=3.2.0 <4.0.0'

@@ -5,7 +5,7 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:supabase_codegen/src/models/foreign_key_actions.dart';
+import 'package:supabase_annotations/src/models/foreign_key_actions.dart';
 
 /// Annotation for configuring foreign key relationships.
 ///

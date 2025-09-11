@@ -5,7 +5,7 @@
 library;
 
 import 'package:meta/meta.dart';
-import 'package:supabase_codegen/src/models/index_types.dart';
+import 'package:supabase_annotations/src/models/index_types.dart';
 
 /// Annotation for configuring database indexes.
 ///

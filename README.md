@@ -17,7 +17,7 @@ A Dart package that generates PostgreSQL database schemas from annotated Dart cl
 
 ```yaml
 dependencies:
-  supabase_codegen: ^2.0.0
+  supabase_annotations: ^2.0.0
 
 dev_dependencies:
   build_runner: ^2.4.8
@@ -57,7 +57,7 @@ targets:
 ### 3. Define Your Models
 
 ```dart
-import 'package:supabase_codegen/supabase_codegen.dart';
+import 'package:supabase_codegen/supabase_annotations.dart';
 
 @DatabaseTable(
   name: 'users',

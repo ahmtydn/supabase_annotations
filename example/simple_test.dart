@@ -1,7 +1,7 @@
 /// Simple test model for testing the schema generator
 library;
 
-import 'package:supabase_codegen/supabase_codegen.dart';
+import 'package:supabase_annotations/supabase_annotations.dart';
 
 /// Simple user table for testing
 @DatabaseTable(
