@@ -1,0 +1,128 @@
+# Analysis configuration for supabase_schema_generator
+# Follows industry best practices and strict linting rules
+
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  # Exclude generated files from analysis
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.schema.dart"
+    - "**/*.freezed.dart"
+    - "build/**"
+    - "example/build/**"
+    - "test/fixtures/**"
+  
+  # Enable additional experiments
+  # enable-experiment:
+  #   - feature-name  # Add experimental features when needed
+  
+  # Language configuration
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  
+  # Plugin configuration
+  plugins:
+    - dart_code_metrics
+
+  # Error handling
+  errors:
+    # Treat certain warnings as errors
+    missing_required_param: error
+    missing_return: error
+    dead_code: warning
+    
+    # Relax some rules for generated code
+    invalid_annotation_target: ignore
+    
+    # Custom rules
+    avoid_print: warning
+    prefer_single_quotes: warning
+
+# Dart Code Metrics configuration
+dart_code_metrics:
+  anti-patterns:
+    - long-method
+    - long-parameter-list
+  
+  metrics:
+    cyclomatic-complexity: 20
+    maximum-nesting-level: 5
+    number-of-parameters: 8
+    source-lines-of-code: 50
+  
+  metrics-exclude:
+    - test/**
+    - "**/*.g.dart"
+  
+  rules:
+    # Design rules
+    - no-boolean-literal-compare
+    - no-empty-block
+    - prefer-trailing-comma
+    - prefer-conditional-expressions
+    - prefer-moving-to-variable
+    
+    # Performance rules
+    - avoid-unnecessary-type-casts
+    - avoid-unnecessary-type-assertions
+    - prefer-const-border-radius
+    
+    # Code style rules
+    - always-remove-listener
+    - avoid-returning-widgets
+    - prefer-extracting-callbacks
+    
+    # Flutter specific (if applicable)
+    - always-remove-listener
+    - avoid-shrink-wrap-in-lists
+
+linter:
+  rules:
+    # Line length configuration
+    lines_longer_than_80_chars: false 
+    
+    # Constructor preferences - ignore for static factory methods
+    prefer_constructors_over_static_methods: false
+    
+    # Cascade invocations - ignore for complex method chains
+    cascade_invocations: false
+    
+    # Enhanced rules beyond very_good_analysis
+    
+    # Error prone patterns
+    avoid_dynamic_calls: true
+    avoid_type_to_string: true
+    cancel_subscriptions: true
+    close_sinks: true
+    literal_only_boolean_expressions: true
+    no_adjacent_strings_in_list: true
+    test_types_in_equals: true
+    throw_in_finally: true
+    unnecessary_statements: true
+    
+    # Documentation
+    public_member_api_docs: true
+    
+    # Style improvements
+    avoid_catches_without_on_clauses: true
+    avoid_catching_errors: true
+    use_super_parameters: true
+    use_enums: true
+    use_colored_box: true
+    use_decorated_box: true
+    
+    # Performance
+    avoid_function_literals_in_foreach_calls: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    
+    # Security
+    avoid_web_libraries_in_flutter: true
+    
+    # Experimental
+    use_build_context_synchronously: true
+    discarded_futures: true

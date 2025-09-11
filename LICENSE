@@ -1,0 +1,76 @@
+MIT License
+
+Copyright (c) 2024 Supabase Schema Generator Contributors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+================================================================================
+
+Additional Terms for Commercial Use:
+
+While this software is provided under the MIT License, we kindly request that
+commercial users consider supporting the project through:
+
+1. Contributing improvements and bug fixes back to the community
+2. Providing feedback and suggestions for enhancement
+3. Acknowledging the use of this library in their products
+4. Considering sponsorship or donations to support continued development
+
+Attribution Notice:
+
+When redistributing this software or derivative works, please include the
+following attribution notice in a prominent location:
+
+"Powered by Supabase Schema Generator - https://github.com/your-repo/supabase_schema_generator"
+
+Third-Party Dependencies:
+
+This software may include dependencies that are subject to their own licenses.
+Please see the pubspec.yaml file and individual package documentation for
+license information regarding third-party dependencies.
+
+Trademark Notice:
+
+The names "Supabase Schema Generator" and any associated logos or marks are
+trademarks and may not be used without permission except as necessary for
+reasonable and customary use in describing the origin of the work.
+
+Support and Warranty Disclaimer:
+
+This software is provided on an "as-is" basis. The contributors and maintainers
+make no warranties regarding the software's functionality, reliability, or
+suitability for any particular purpose. Users assume all risks associated with
+the use of this software.
+
+Contribution License Agreement:
+
+By contributing to this project, you agree that your contributions will be
+licensed under the same MIT License terms and that you have the legal right
+to make such contributions.
+
+Export Control Notice:
+
+This software may be subject to export control laws and regulations. Users are
+responsible for ensuring compliance with all applicable export control laws
+when distributing or using this software internationally.
+
+================================================================================
+
+For questions regarding licensing, please contact the project maintainers
+through the official repository or project communication channels.

@@ -1,0 +1,31 @@
+targets:
+  $default:
+    builders:
+      supabase_schema_generator|schema_builder:
+        enabled: true
+        generate_for:
+          include:
+            - lib/**.dart
+            - example/**.dart
+          exclude:
+            - lib/**.g.dart
+            - lib/**.schema.dart
+        options:
+          # Schema configuration
+          enable_rls_by_default: true
+          add_timestamps: true
+          
+          # Code generation options
+          use_explicit_nullability: true
+          generate_comments: true
+          validate_schema: true
+          format_sql: true
+
+builders:
+  schema_builder:
+    import: "package:supabase_schema_generator/builder.dart"
+    builder_factories: ["supabaseSchemaBuilder"]
+    build_extensions:
+      ".dart": [".schema.sql"]
+    auto_apply: dependents
+    build_to: source
