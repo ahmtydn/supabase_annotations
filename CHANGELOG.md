@@ -5,7 +5,7 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.5] - 2025-09-11
+## [1.0.5]
 
 ### Fixed
 - **Critical**: Fixed index column name mapping issues - indexes now properly recognize database column names vs field names
@@ -21,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved validation for database schema generation
 - Added comprehensive test coverage for edge cases
 
-## [1.0.4] - 2025-09-11
+## [1.0.4]
 
 ### Fixed
 - Fixed static analysis issues by removing invalid @immutable annotations from enums
@@ -34,12 +34,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly improved pub.dev package score by addressing all major scoring criteria
 - Better package discoverability and community accessibility
 
-## [1.0.3] - 2025-09-11
+## [1.0.3]
 
 ### Fixed
 - Improved package reliability and build system stability
 
-## [1.0.2] - 2025-09-11
+## [1.0.2] 
 
 ### Fixed
 - Fixed static analysis issues by removing unnecessary library names
@@ -47,13 +47,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved package score for pub.dev by addressing linting issues
 - Enhanced code quality and documentation standards
 
-## [1.0.1] - 2025-09-11
+## [1.0.1]
 
 ### Fixed
 - Updated README.md with correct package version and repository links
 - Fixed version number consistency in documentation
 
-## [2.0.0] - 2025-09-11
+## [2.0.0]
 
 ### Changed
 - **Configuration Defaults**: Updated default configuration values
