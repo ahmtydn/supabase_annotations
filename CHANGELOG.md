@@ -1,11 +1,38 @@
 # Changelog
 
-All notable changes to the Supabase Schema Generator package will be documented in this file.
+All notable changes to the Supabase Annotations package will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0]
+## [1.1.2] - 2025-09-12
+
+### Added
+- **📚 Professional Documentation**: Complete README overhaul with comprehensive navigation
+- **🎯 Enhanced Examples**: Real-world use cases for multi-tenant apps, e-commerce, and analytics
+- **🔗 Navigation Links**: Table of contents with anchor links for easy navigation
+- **📊 Visual Improvements**: Professional badges, emojis, and better formatting
+- **🛠️ Development Guide**: Comprehensive contributor documentation
+- **📞 Community Support**: Clear support channels and community guidelines
+
+### Improved
+- **📖 Documentation Structure**: Logical organization with clear sections
+- **🎨 Visual Appeal**: Consistent emoji usage and professional formatting
+- **📱 Responsive Design**: Markdown optimized for all platforms
+- **🔍 Searchability**: Better keywords and descriptions for discoverability
+
+### Fixed
+- **📝 Documentation Accuracy**: Updated all examples to reflect current API
+- **🔗 Link Consistency**: All internal and external links verified and updated
+
+## [1.1.1] - 2025-09-11
+
+### Fixed
+- **🔧 Build System**: Resolved build configuration issues
+- **📦 Dependencies**: Updated dependency constraints for better compatibility
+- **🐛 Minor Bugs**: Various small fixes for improved stability
+
+## [1.1.0] - 2025-09-10
 
 ### Added
 - **🚀 Migration Support**: Complete schema migration system with 5 migration modes:
@@ -43,7 +70,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added partition table examples with different strategies
 - Updated build.yaml configuration examples
 
-## [1.0.6]
+## [1.0.6] - 2025-09-08
+
+## [1.0.6] - 2025-09-08
 
 ### Fixed
 - **Critical**: Fixed RLS Policy annotation parsing - resolved "Null check operator used on a null value" error when processing RLSPolicy annotations
@@ -56,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More robust handling of optional annotation parameters
 - Enhanced test coverage for RLS policy generation
 
-## [1.0.5]
+## [1.0.5] - 2025-09-07
 
 ### Fixed
 - **Critical**: Fixed index column name mapping issues - indexes now properly recognize database column names vs field names
@@ -72,7 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved validation for database schema generation
 - Added comprehensive test coverage for edge cases
 
-## [1.0.4]
+## [1.0.4] - 2025-09-06
 
 ### Fixed
 - Fixed static analysis issues by removing invalid @immutable annotations from enums
@@ -85,12 +114,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly improved pub.dev package score by addressing all major scoring criteria
 - Better package discoverability and community accessibility
 
-## [1.0.3]
+## [1.0.3] - 2025-09-05
 
 ### Fixed
 - Improved package reliability and build system stability
+- Enhanced error handling for edge cases
+- Better validation for schema generation
 
-## [1.0.2] 
+## [1.0.2] - 2025-09-04
 
 ### Fixed
 - Fixed static analysis issues by removing unnecessary library names
@@ -98,189 +129,149 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved package score for pub.dev by addressing linting issues
 - Enhanced code quality and documentation standards
 
-## [1.0.1]
+## [1.0.1] - 2025-09-03
 
 ### Fixed
 - Updated README.md with correct package version and repository links
 - Fixed version number consistency in documentation
+- Improved package metadata for better discoverability
 
-## [2.0.0]
-
-### Changed
-- **Configuration Defaults**: Updated default configuration values
-  - `formatSql`: true (improved readability)
-  - `enableRlsByDefault`: false (explicit security configuration)
-  - `addTimestamps`: false (clean schema by default)
-  - `useExplicitNullability`: false (use PostgreSQL defaults)
-  - `generateComments`: true (include documentation)
-  - `validateSchema`: true (ensure schema consistency)
-
-### Removed
-- **Unnecessary Dependencies**: Removed `dartdoc` and `mockito` from dev dependencies
-- **Platform Support**: Removed Android, iOS, and Web platform targets
-- **Performance Options**: Removed `parallel_processing` and `cache_generated_files` options
-- **Builder Configuration**: Simplified builder configuration in build.yaml
-
-### Fixed
-- **Documentation**: Updated README with correct configuration examples
-- **Package Metadata**: Cleaned up pubspec.yaml for better package management
-
-## [1.0.0]
+## [1.0.0] - 2025-09-01
 
 ### Added
 
-#### Core Features
+#### 🏗️ Core Features
 - **PostgreSQL Schema Generation**: Convert Dart classes to SQL DDL statements
-- **Type-Safe Column Mapping**: Dart-to-PostgreSQL type system
-- **Row Level Security (RLS)**: Policy generation and management
-- **Foreign Key Relationships**: Referential integrity support
-- **Database Indexes**: Multiple index type support
+- **Type-Safe Column Mapping**: Complete Dart-to-PostgreSQL type system
+- **Row Level Security (RLS)**: Declarative policy generation and management
+- **Foreign Key Relationships**: Full referential integrity support
+- **Database Indexes**: Multiple index types with optimization
 - **Schema Validation**: Comprehensive validation and error reporting
-- **Permissive/Restrictive**: Full PostgreSQL policy model support
-- **Complex Conditions**: SQL expressions with validation
 
-#### Foreign Keys
+#### 🔐 Security Features
+- **RLS Policies**: Support for all policy types (SELECT, INSERT, UPDATE, DELETE, ALL)
+- **Fine-Grained Permissions**: Row and column-level access control
+- **Authentication Integration**: Built-in Supabase auth helpers
+- **SQL Injection Protection**: Safe parameterized conditions
+- **Access Control**: Role-based permission management
+
+#### ⚡ Performance Features
+- **Smart Indexing**: Automatic index recommendations
+- **Multiple Index Types**: B-tree, Hash, GIN, GiST, SP-GiST, BRIN support
+- **Composite Indexes**: Multi-column index optimization
+- **Partial Indexes**: Conditional indexing for large tables
+- **Query Optimization**: Performance-aware SQL generation
+
+#### 🔗 Foreign Key Support
 - **Cascade Actions**: NO ACTION, RESTRICT, CASCADE, SET NULL, SET DEFAULT
 - **Composite Keys**: Multi-column foreign key relationships
 - **Self-referencing**: Support for hierarchical data structures
 - **Deferrable Constraints**: Transaction-level constraint checking
 
-#### Validation & Error Handling
+#### 📊 Column Types & Constraints
+- **Complete PostgreSQL Types**: All standard PostgreSQL data types
+- **Custom Constraints**: CHECK constraints with validation
+- **Default Values**: Rich default value support including functions
+- **Nullability Control**: Explicit NULL/NOT NULL configuration
+- **Primary Keys**: Single and composite primary key support
+
+#### 🛡️ Validation & Error Handling
 - **Schema Validation**: Comprehensive validation with detailed error messages
 - **Type Compatibility**: Automatic Dart-to-PostgreSQL type checking
-- **Constraint Validation**: CHECK constraints and business rule validation
+- **Constraint Validation**: Business rule and constraint validation
 - **Performance Warnings**: Index and query optimization suggestions
+- **Build-time Errors**: Catch issues before deployment
 
-#### Code Generation
+#### 🔧 Code Generation
 - **SQL DDL Generation**: Complete CREATE TABLE statements
-- **Index Generation**: Optimized index creation statements
+- **Index Generation**: Optimized index creation statements  
 - **Policy Generation**: RLS policy creation and management
-- **Migration Generation**: Versioned schema change scripts
-- **Documentation**: Automatic comment generation
+- **Comment Generation**: Automatic documentation in SQL
+- **Clean Output**: Formatted, readable SQL generation
 
-#### Developer Experience
-- **Comprehensive Documentation**: Inline documentation for all features
-- **Type Safety**: Full compile-time type checking
-- **IDE Support**: IntelliSense and code completion
-- **Error Messages**: Clear, actionable error reporting
-- **Examples**: Real-world usage examples and patterns
+#### 🎯 Developer Experience
+- **Type Safety**: Full compile-time type checking with null safety
+- **IDE Support**: Complete IntelliSense and code completion
+- **Comprehensive Documentation**: Inline help and examples
+- **Clear Error Messages**: Actionable error reporting with suggestions
+- **Rich Examples**: Real-world usage patterns and best practices
 
-#### Performance Features
-- **Intelligent Indexing**: Automatic index recommendations
-- **Query Optimization**: Performance-aware SQL generation
-- **Partial Indexes**: Conditional indexing for large tables
-- **Storage Optimization**: Configurable storage parameters
-
-#### Security Features
-- **RLS by Default**: Security-first approach with RLS policies
-- **Injection Protection**: SQL injection prevention in conditions
-- **Access Control**: Fine-grained permission management
-- **Audit Support**: Built-in audit trail capabilities
-
-### Architecture & Design
-
-#### Software Engineering Principles
-- **SOLID Principles**: Single responsibility, open/closed, dependency inversion
-- **Clean Architecture**: Separation of concerns and dependency management
-- **Domain-Driven Design**: Clear domain models and ubiquitous language
+#### 🏛️ Architecture & Design
+- **SOLID Principles**: Clean, maintainable architecture
+- **Domain-Driven Design**: Clear domain models and language
+- **Extensible Design**: Plugin architecture for customization
 - **Test-Driven Development**: Comprehensive test coverage
-- **Documentation-First**: Extensive documentation and examples
+- **Performance Optimized**: Efficient code generation
 
-#### Code Quality
-- **Static Analysis**: Strict linting and analysis rules
-- **Type Safety**: Null safety and compile-time type checking
-- **Error Handling**: Comprehensive error handling and recovery
-- **Performance**: Optimized code generation and runtime performance
-- **Maintainability**: Clean, readable, and well-structured code
+#### 📚 Documentation & Examples
+- **Quick Start Guide**: Get running in minutes
+- **API Reference**: Complete annotation documentation
+- **Best Practices**: Production-ready patterns
+- **Real-world Examples**: E-commerce, CMS, SaaS patterns
+- **Migration Guide**: Step-by-step upgrade instructions
 
-#### Extensibility
-- **Plugin Architecture**: Extensible generator system
-- **Custom Validators**: Support for custom validation rules
-- **Custom Types**: Extensible type system
-- **Custom Generators**: Support for additional output formats
-
-### Documentation
-
-#### User Guides
-- **Quick Start Guide**: Get up and running in minutes
-- **Comprehensive API Reference**: Complete annotation documentation
-- **Best Practices**: Production-ready patterns and recommendations
-- **Migration Guide**: Step-by-step migration instructions
-- **Troubleshooting**: Common issues and solutions
-
-#### Examples
-- **Basic Usage**: Simple table and column definitions
-- **Advanced Patterns**: Complex relationships and constraints
-- **Real-world Applications**: E-commerce, CMS, and SaaS examples
-- **Performance Optimization**: Indexing and query optimization
-- **Security Patterns**: RLS and access control examples
-
-#### Technical Documentation
-- **Architecture Overview**: System design and components
-- **Extension Points**: How to extend and customize
-- **Contribution Guidelines**: How to contribute to the project
-- **Release Process**: How releases are managed
-
-### Testing
-
-#### Test Coverage
+#### 🧪 Testing & Quality
 - **Unit Tests**: Comprehensive unit test coverage
-- **Integration Tests**: End-to-end testing with real databases
-- **Performance Tests**: Load testing and performance validation
-- **Security Tests**: SQL injection and access control testing
+- **Integration Tests**: End-to-end database testing
+- **Static Analysis**: Strict linting and quality checks
+- **CI/CD**: Automated testing on multiple platforms
+- **Code Coverage**: High test coverage requirements
 
-#### Quality Assurance
-- **Continuous Integration**: Automated testing on multiple platforms
-- **Code Coverage**: Minimum 95% code coverage requirement
-- **Static Analysis**: Automated code quality checks
-- **Manual Testing**: Real-world usage validation
-
-### Compatibility
-
-#### Dart Compatibility
-- **Dart SDK**: 3.0.0 and above
-- **Flutter**: Compatible with Flutter 3.10.0+
-- **Null Safety**: Full null safety support
-
-#### PostgreSQL Compatibility
-- **PostgreSQL**: 12.0 and above
+#### 🌐 Compatibility
+- **Dart SDK**: 3.2.0 and above with null safety
+- **PostgreSQL**: 12.0+ with full feature support
 - **Supabase**: All current versions
-- **Extensions**: Support for common PostgreSQL extensions
-
-#### Platform Support
-- **Development**: Windows, macOS, Linux
-- **Deployment**: All platforms supported by Dart/Flutter
-- **CI/CD**: GitHub Actions, GitLab CI, and other platforms
+- **Platforms**: Windows, macOS, Linux development support
 
 ---
 
-## Development Roadmap
+## 🗺️ Development Roadmap
 
-### Future Releases
+### Planned Features
 
-#### v1.1.0 - Enhanced Validation
-- Advanced constraint validation
-- Custom validator framework
-- Performance analysis tools
-- Enhanced error reporting
+#### v1.2.0 - Advanced Migration Tools
+- **Schema Diff Tools**: Automatic migration generation from schema changes
+- **Rollback Support**: Safe rollback mechanisms for failed migrations
+- **Migration Testing**: Built-in migration validation and testing
+- **Data Migration**: Support for data transformation during schema changes
 
-#### v1.2.0 - Migration Tools
-- Automatic migration generation
-- Schema diff tools
-- Rollback support
-- Migration testing
+#### v1.3.0 - Extended PostgreSQL Features
+- **Stored Procedures**: Generation of PostgreSQL functions and procedures
+- **Triggers**: Event-driven database logic support
+- **Views**: Materialized and standard view generation
+- **Extensions**: Support for PostgreSQL extensions
 
-#### v1.3.0 - Advanced Features
-- Stored procedure generation
-- Trigger support
-- View generation
-- Custom function support
+#### v1.4.0 - Advanced Analytics
+- **Query Analysis**: Performance analysis and optimization suggestions
+- **Schema Metrics**: Database schema health and performance metrics
+- **Usage Patterns**: Analysis of schema usage and optimization opportunities
+- **Documentation Generation**: Automatic schema documentation
 
-#### v2.0.0 - Next Generation
-- GraphQL schema generation
-- Real-time subscription support
-- Advanced caching strategies
-- Cloud deployment tools
+#### v2.0.0 - Next Generation Features
+- **GraphQL Integration**: Automatic GraphQL schema generation
+- **Real-time Support**: Enhanced real-time subscription features
+- **Cloud Integration**: Direct cloud deployment and management
+- **Advanced Caching**: Intelligent caching strategies
+
+---
+
+## 📞 Support & Contributing
+
+### Getting Help
+- **Documentation**: [API Reference](https://pub.dev/documentation/supabase_annotations/latest/)
+- **Issues**: [GitHub Issues](https://github.com/ahmtydn/supabase_annotations/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
+
+### Contributing
+We welcome contributions! Please see our [Contributing Guide](https://github.com/ahmtydn/supabase_annotations/blob/main/CONTRIBUTING.md) for details.
+
+### Changelog Conventions
+- **Added**: New features and capabilities
+- **Changed**: Changes in existing functionality
+- **Deprecated**: Soon-to-be removed features
+- **Removed**: Removed features
+- **Fixed**: Bug fixes and corrections
+- **Security**: Security-related improvements
 
 ---
 
