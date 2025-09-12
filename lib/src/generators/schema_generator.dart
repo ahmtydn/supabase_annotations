@@ -10,17 +10,8 @@ import 'dart:async';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:supabase_annotations/src/annotations/database_column.dart';
-import 'package:supabase_annotations/src/annotations/database_index.dart';
-import 'package:supabase_annotations/src/annotations/database_table.dart';
-import 'package:supabase_annotations/src/annotations/foreign_key.dart';
-import 'package:supabase_annotations/src/annotations/rls_policy.dart';
-import 'package:supabase_annotations/src/models/column_types.dart';
-import 'package:supabase_annotations/src/models/default_values.dart';
-import 'package:supabase_annotations/src/models/foreign_key_actions.dart';
-import 'package:supabase_annotations/src/models/index_types.dart';
 import 'package:supabase_annotations/src/models/migration_config.dart';
-import 'package:supabase_annotations/src/models/validators.dart';
+import 'package:supabase_annotations/supabase_annotations.dart';
 
 /// Configuration for the schema generator.
 class SchemaGeneratorConfig {
@@ -241,11 +232,19 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Parses the DatabaseTable annotation.
   DatabaseTable _parseTableAnnotation(ConstantReader annotation) {
+    // Parse partition strategy if provided
+    PartitionStrategy? partitionStrategy;
+    final partitionReader = annotation.peek('partitionBy');
+    if (partitionReader != null && !partitionReader.isNull) {
+      partitionStrategy = _parsePartitionStrategy(partitionReader);
+    }
+
     return DatabaseTable(
       name: annotation.peek('name')?.stringValue,
       comment: annotation.peek('comment')?.stringValue,
       enableRLS:
           annotation.peek('enableRLS')?.boolValue ?? config.enableRlsByDefault,
+      partitionBy: partitionStrategy,
       // Note: Only using properties that exist in our DatabaseTable annotation
     );
   }
@@ -715,6 +714,17 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       }
     }
 
+    // Add partition key columns to primary key if table is partitioned
+    // This is required by PostgreSQL for unique constraints on partitioned tables
+    if (tableConfig.partitionBy != null) {
+      final partitionColumns = _getPartitionColumns(tableConfig.partitionBy!);
+      for (final partitionColumn in partitionColumns) {
+        if (!primaryKeyColumns.contains(partitionColumn)) {
+          primaryKeyColumns.add(partitionColumn);
+        }
+      }
+    }
+
     final hasCompositeKey = primaryKeyColumns.length > 1;
 
     // Second pass: generate column definitions
@@ -748,7 +758,20 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       lines.add('  PRIMARY KEY (${primaryKeyColumns.join(', ')})');
     }
 
-    lines.add(');');
+    lines.add(')');
+
+    // Add partition clause if specified
+    if (tableConfig.partitionBy != null) {
+      try {
+        tableConfig.partitionBy!.validate();
+        lines.add(tableConfig.partitionBy!.toSQL());
+      } on Exception catch (e) {
+        throw StateError(
+            'Invalid partition configuration for table "$tableName": $e');
+      }
+    }
+
+    lines.add(';');
 
     return lines.join('\n');
   }
@@ -828,7 +851,8 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
         final annotation = field.annotation ?? const DatabaseColumn();
         final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
         final sqlType = annotation.getFullSqlType();
-        final constraints = _getColumnConstraints(annotation);
+        // Skip PRIMARY KEY constraints for ALTER TABLE - they need to be handled separately
+        final constraints = _getColumnConstraints(annotation, false, true);
 
         final constraintStr =
             constraints.isNotEmpty ? ' ${constraints.join(' ')}' : '';
@@ -849,7 +873,8 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final annotation = field.annotation ?? const DatabaseColumn();
       final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
       final sqlType = annotation.getFullSqlType();
-      final constraints = _getColumnConstraints(annotation);
+      // Skip PRIMARY KEY constraints for ALTER TABLE - they need to be handled separately
+      final constraints = _getColumnConstraints(annotation, false, true);
 
       final constraintStr =
           constraints.isNotEmpty ? ' ${constraints.join(' ')}' : '';
@@ -896,6 +921,8 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
         .replaceAll('CREATE INDEX', '\nCREATE INDEX')
         .replaceAll('ALTER TABLE', '\nALTER TABLE')
         .replaceAll('COMMENT ON', '\nCOMMENT ON')
+        .replaceAll(
+            'PARTITION BY', '\nPARTITION BY') // Add partition formatting
         .replaceAll(RegExp(r'^\s+'), '') // Remove leading whitespace
         .replaceAll(
             RegExp(r'\n\s*\n'), '\n\n') // Normalize multiple line breaks
@@ -1000,11 +1027,11 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Gets column constraints with configuration-aware nullability handling.
   List<String> _getColumnConstraints(DatabaseColumn annotation,
-      [bool hasCompositeKey = false]) {
+      [bool hasCompositeKey = false, bool skipPrimaryKey = false]) {
     final constraints = <String>[];
 
     // Only add PRIMARY KEY constraint for single-column primary keys
-    if (annotation.isPrimaryKey && !hasCompositeKey) {
+    if (annotation.isPrimaryKey && !hasCompositeKey && !skipPrimaryKey) {
       constraints.add('PRIMARY KEY');
     }
 
@@ -1041,6 +1068,65 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     }
 
     return constraints;
+  }
+
+  /// Parses partition strategy from annotation constant reader.
+  PartitionStrategy? _parsePartitionStrategy(ConstantReader partitionReader) {
+    if (partitionReader.isNull) return null;
+
+    try {
+      final type = partitionReader.objectValue.type;
+      final typeName = type?.getDisplayString(withNullability: false);
+
+      switch (typeName) {
+        case 'RangePartition':
+          final columnsReader = partitionReader.peek('columns');
+          if (columnsReader != null) {
+            final columns = columnsReader.listValue
+                .map((e) => e.toStringValue() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList();
+            return RangePartition(columns: columns);
+          }
+
+        case 'HashPartition':
+          final columnsReader = partitionReader.peek('columns');
+          if (columnsReader != null) {
+            final columns = columnsReader.listValue
+                .map((e) => e.toStringValue() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList();
+            return HashPartition(columns: columns);
+          }
+
+        case 'ListPartition':
+          final columnsReader = partitionReader.peek('columns');
+          if (columnsReader != null) {
+            final columns = columnsReader.listValue
+                .map((e) => e.toStringValue() ?? '')
+                .where((s) => s.isNotEmpty)
+                .toList();
+            return ListPartition(columns: columns);
+          }
+      }
+    } on Exception {
+      // Failed to parse partition strategy, return null
+      return null;
+    }
+
+    return null;
+  }
+
+  /// Extracts column names from partition strategy.
+  List<String> _getPartitionColumns(PartitionStrategy partitionStrategy) {
+    if (partitionStrategy is RangePartition) {
+      return partitionStrategy.columns;
+    } else if (partitionStrategy is HashPartition) {
+      return partitionStrategy.columns;
+    } else if (partitionStrategy is ListPartition) {
+      return partitionStrategy.columns;
+    }
+    return [];
   }
 }
 

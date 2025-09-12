@@ -6,6 +6,13 @@ import 'package:supabase_annotations/supabase_annotations.dart';
   comment: 'Test users table for migration testing',
 )
 class TestUser {
+  TestUser({
+    required this.email,
+    required this.age,
+    this.id,
+    this.name,
+    this.createdAt,
+  });
   @DatabaseColumn(
     type: ColumnType.uuid,
     isPrimaryKey: true,
@@ -40,12 +47,4 @@ class TestUser {
     isNullable: false,
   )
   int age = 0;
-
-  TestUser({
-    this.id,
-    required this.email,
-    this.name,
-    this.createdAt,
-    required this.age,
-  });
 }
