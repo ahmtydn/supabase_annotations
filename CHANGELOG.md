@@ -5,7 +5,13 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.2] - 2025-09-12
+## [1.1.3]
+
+### Improved
+- **📝 Documentation**: Cleaned up changelog by removing specific dates for better maintainability
+- **🔄 Version Management**: Updated to semantic versioning without timestamp dependencies
+
+## [1.1.2]
 
 ### Added
 - **📚 Professional Documentation**: Complete README overhaul with comprehensive navigation
@@ -25,14 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **📝 Documentation Accuracy**: Updated all examples to reflect current API
 - **🔗 Link Consistency**: All internal and external links verified and updated
 
-## [1.1.1] - 2025-09-11
+## [1.1.1]
 
 ### Fixed
 - **🔧 Build System**: Resolved build configuration issues
 - **📦 Dependencies**: Updated dependency constraints for better compatibility
 - **🐛 Minor Bugs**: Various small fixes for improved stability
 
-## [1.1.0] - 2025-09-10
+## [1.1.0]
 
 ### Added
 - **🚀 Migration Support**: Complete schema migration system with 5 migration modes:
@@ -70,9 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added partition table examples with different strategies
 - Updated build.yaml configuration examples
 
-## [1.0.6] - 2025-09-08
-
-## [1.0.6] - 2025-09-08
+## [1.0.6]
 
 ### Fixed
 - **Critical**: Fixed RLS Policy annotation parsing - resolved "Null check operator used on a null value" error when processing RLSPolicy annotations
@@ -85,7 +89,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - More robust handling of optional annotation parameters
 - Enhanced test coverage for RLS policy generation
 
-## [1.0.5] - 2025-09-07
+## [1.0.5]
 
 ### Fixed
 - **Critical**: Fixed index column name mapping issues - indexes now properly recognize database column names vs field names
@@ -101,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved validation for database schema generation
 - Added comprehensive test coverage for edge cases
 
-## [1.0.4] - 2025-09-06
+## [1.0.4]
 
 ### Fixed
 - Fixed static analysis issues by removing invalid @immutable annotations from enums
@@ -114,14 +118,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Significantly improved pub.dev package score by addressing all major scoring criteria
 - Better package discoverability and community accessibility
 
-## [1.0.3] - 2025-09-05
+## [1.0.3]
 
 ### Fixed
 - Improved package reliability and build system stability
 - Enhanced error handling for edge cases
 - Better validation for schema generation
 
-## [1.0.2] - 2025-09-04
+## [1.0.2]
 
 ### Fixed
 - Fixed static analysis issues by removing unnecessary library names
@@ -129,14 +133,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved package score for pub.dev by addressing linting issues
 - Enhanced code quality and documentation standards
 
-## [1.0.1] - 2025-09-03
+## [1.0.1]
 
 ### Fixed
 - Updated README.md with correct package version and repository links
 - Fixed version number consistency in documentation
 - Improved package metadata for better discoverability
 
-## [1.0.0] - 2025-09-01
+## [1.0.0]
 
 ### Added
 
