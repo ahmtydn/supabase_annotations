@@ -5,6 +5,44 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-09-12
+
+### Added
+- **🚀 Migration Support**: Complete schema migration system with 5 migration modes:
+  - `createOnly`: Original behavior (default) 
+  - `createIfNotExists`: Safe table creation with IF NOT EXISTS
+  - `createOrAlter`: Create table if not exists, then add missing columns
+  - `alterOnly`: Only generate ALTER TABLE statements for existing schemas
+  - `dropAndRecreate`: Drop and recreate tables (development only)
+- **🔄 PostgreSQL DO Blocks**: Conditional ALTER TABLE statements using DO blocks for maximum safety
+- **⚙️ Migration Configuration**: Extensive configuration options in build.yaml:
+  - `migration_mode`: Choose migration strategy
+  - `enable_column_adding`: Control column addition behavior
+  - `generate_do_blocks`: Use PostgreSQL DO blocks for conditional operations
+- **🗂️ Table Partitioning**: Full PostgreSQL partitioning support:
+  - `RangePartition`: Partition by range (ideal for time-series data)
+  - `HashPartition`: Partition by hash (for even data distribution)  
+  - `ListPartition`: Partition by list (for categorical data)
+- **🔧 Composite Primary Keys**: Automatic composite primary key generation for partitioned tables
+- **📚 Migration Documentation**: Comprehensive migration guide and examples
+
+### Fixed
+- **Critical**: PostgreSQL partitioned table primary key constraints now include all partition columns
+- **Critical**: ALTER TABLE statements no longer generate conflicting PRIMARY KEY constraints
+- Migration modes properly handle existing table scenarios without errors
+- Partition clause SQL formatting and generation
+
+### Improved
+- Enhanced SQL formatter with partition clause support
+- Better error handling for partition configuration validation
+- Backward compatibility maintained - existing code continues to work
+- More robust annotation parsing for complex configurations
+
+### Examples
+- Added comprehensive migration examples for all modes
+- Added partition table examples with different strategies
+- Updated build.yaml configuration examples
+
 ## [1.0.6]
 
 ### Fixed

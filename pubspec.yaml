@@ -2,8 +2,8 @@ name: supabase_annotations
 description: >-
   A code generator for creating Supabase/PostgreSQL database schemas 
   from Dart model classes. Supports RLS policies, indexes, 
-  foreign keys, and schema validation.
-version: 1.0.6
+  foreign keys, schema validation, migration support, and table partitioning.
+version: 1.1.0
 homepage: https://github.com/ahmtydn/supabase_annotations
 repository: https://github.com/ahmtydn/supabase_annotations
 issue_tracker: https://github.com/ahmtydn/supabase_annotations/issues

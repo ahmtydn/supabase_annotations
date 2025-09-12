@@ -107,16 +107,45 @@ dart run build_runner build
 This generates SQL files like:
 
 ```sql
-CREATE TABLE users (
+-- Basic table creation
+CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- With migration support - adds new columns safely
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'users' AND column_name = 'age'
+  ) THEN
+    ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 0;
+  END IF;
+END $$;
+
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY users_own_data ON users 
 FOR ALL USING (auth.uid() = id);
+```
+
+### 5. Advanced Features
+
+**Table Partitioning:**
+```dart
+@DatabaseTable(
+  name: 'events',
+  partitionBy: RangePartition(columns: ['created_at']),
+)
+class Event { ... }
+```
+
+Generates:
+```sql
+CREATE TABLE events (..., PRIMARY KEY (id, created_at))
+PARTITION BY RANGE (created_at);
 ```
 
 ## Core Annotations
