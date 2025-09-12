@@ -1,7 +1,6 @@
 # 🚀 Supabase Annotations
 
 [![pub package](https://img.shields.io/pub/v/supabase_annotations.svg)](https://pub.dev/packages/supabase_annotations)
-[![Dart CI](https://github.com/ahmtydn/supabase_annotations/workflows/CI/badge.svg)](https://github.com/ahmtydn/supabase_annotations/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub stars](https://img.shields.io/github/stars/ahmtydn/supabase_annotations.svg?style=social&label=Star)](https://github.com/ahmtydn/supabase_annotations)
 
