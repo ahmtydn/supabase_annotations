@@ -1,31 +1,77 @@
-# Supabase Annotations
+# 🚀 Supabase Annotations
 
-A code generator for creating Supabase/PostgreSQL database schemas from Dart model classes. Supports RLS policies, indexes, foreign keys, and schema validation.
+[![pub package](https://img.shields.io/pub/v/supabase_annotations.svg)](https://pub.dev/packages/supabase_annotations)
+[![Dart CI](https://github.com/ahmtydn/supabase_annotations/workflows/CI/badge.svg)](https://github.com/ahmtydn/supabase_annotations/actions)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub stars](https://img.shields.io/github/stars/ahmtydn/supabase_annotations.svg?style=social&label=Star)](https://github.com/ahmtydn/supabase_annotations)
 
-## Features
+A powerful, type-safe code generator for creating **Supabase/PostgreSQL** database schemas from Dart model classes. Build production-ready database schemas with **Row Level Security (RLS)**, **indexes**, **foreign keys**, **migrations**, and **table partitioning** - all from your Dart code.
 
-🚀 **Clean Architecture**: Professional code generation  
-🔧 **Type Safety**: PostgreSQL type support with Dart mapping  
-🛡️ **Security**: Row Level Security (RLS) policy generation  
-⚡ **Performance**: Index creation and optimization  
-📝 **Documentation**: Inline documentation generation  
-✅ **Validation**: Schema validation with error reporting  
-🔄 **Migration Support**: Safe schema evolution with multiple migration modes  
+---
 
-## Quick Start
+## 📚 Table of Contents
 
-### 1. Add Dependencies
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start)
+- [📖 Core Annotations](#-core-annotations)
+- [🔧 Configuration](#-configuration)
+- [🗄️ Column Types & Constraints](#️-column-types--constraints)
+- [🔐 Security & RLS Policies](#-security--rls-policies)
+- [⚡ Performance & Indexing](#-performance--indexing)
+- [🔄 Migration Support](#-migration-support)
+- [🎯 Advanced Examples](#-advanced-examples)
+- [📝 Best Practices](#-best-practices)
+- [🛠️ Development](#️-development)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
+
+---
+
+## ✨ Features
+
+### 🏗️ **Schema Generation**
+- **Type-Safe SQL Generation** - Convert Dart classes to PostgreSQL schemas
+- **Full PostgreSQL Support** - All column types, constraints, and features
+- **Automatic Documentation** - Generate SQL comments from Dart documentation
+
+### 🔐 **Security First**
+- **Row Level Security (RLS)** - Declarative RLS policy generation
+- **Fine-Grained Permissions** - Control access at the row and column level
+- **Authentication Integration** - Built-in Supabase auth helpers
+
+### ⚡ **Performance Optimization**
+- **Smart Indexing** - Automatic and custom index generation
+- **Query Optimization** - Composite indexes and partial indexes
+- **Table Partitioning** - Range and hash partitioning support
+
+### 🔄 **Migration & Evolution**
+- **Safe Schema Evolution** - Multiple migration strategies
+- **Zero-Downtime Updates** - ADD COLUMN and ALTER TABLE support
+- **Rollback Support** - Safe migration with fallback options
+
+### 🎯 **Developer Experience**
+- **IDE Integration** - Full IntelliSense and code completion
+- **Comprehensive Validation** - Catch errors at build time
+- **Rich Documentation** - Inline help and examples
+
+---
+
+## 🚀 Quick Start
+
+### 1️⃣ Installation
+
+Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  supabase_annotations: ^1.0.0
+  supabase_annotations: ^1.1.1
 
 dev_dependencies:
   build_runner: ^2.4.8
   source_gen: ^1.5.0
 ```
 
-### 2. Configure Build
+### 2️⃣ Configuration
 
 Create `build.yaml` in your project root:
 
@@ -43,24 +89,21 @@ targets:
             - lib/**.g.dart
             - lib/**.schema.dart
         options:
-          # Migration strategy (NEW!)
-          migration_mode: 'createOnly'             # Migration strategy: createOnly, createIfNotExists, createOrAlter, alterOnly, dropAndRecreate
-          enable_column_adding: true               # Add missing columns in migration modes
-          generate_do_blocks: true                 # Use PostgreSQL DO blocks for safety
+          # 🔄 Migration Strategy
+          migration_mode: 'createOrAlter'        # Safe schema evolution
+          enable_column_adding: true             # Add missing columns
+          generate_do_blocks: true               # PostgreSQL DO blocks
           
-          # Schema configuration
-          enable_rls_by_default: false             # Enable RLS on all tables by default
-          add_timestamps: false                    # Auto-add created_at/updated_at columns
+          # 🔐 Security Configuration
+          enable_rls_by_default: false           # RLS on all tables
           
-          # Code generation options
-          use_explicit_nullability: false         # Always specify NULL/NOT NULL
-          generate_comments: true                  # Include comments in SQL output
-          validate_schema: true                    # Validate schema consistency
-          format_sql: true                        # Format SQL for readability
-          
+          # 📝 Code Generation
+          generate_comments: true                # Include documentation
+          validate_schema: true                  # Schema validation
+          format_sql: true                      # Format output
 ```
 
-### 3. Define Your Models
+### 3️⃣ Define Your Model
 
 ```dart
 import 'package:supabase_annotations/supabase_annotations.dart';
@@ -74,6 +117,11 @@ import 'package:supabase_annotations/supabase_annotations.dart';
   name: 'users_own_data',
   type: RLSPolicyType.all,
   condition: 'auth.uid() = id',
+)
+@DatabaseIndex(
+  name: 'users_email_idx',
+  columns: ['email'],
+  isUnique: true,
 )
 class User {
   @DatabaseColumn(
@@ -91,30 +139,443 @@ class User {
   late String email;
 
   @DatabaseColumn(
+    type: ColumnType.varchar(100),
+    isNullable: false,
+  )
+  late String fullName;
+
+  @DatabaseColumn(
     type: ColumnType.timestampWithTimeZone,
     defaultValue: DefaultValue.currentTimestamp,
   )
   late DateTime createdAt;
+
+  @DatabaseColumn(
+    type: ColumnType.timestampWithTimeZone,
+    defaultValue: DefaultValue.currentTimestamp,
+  )
+  late DateTime updatedAt;
 }
 ```
 
-### 4. Generate Schema
+### 4️⃣ Generate Schema
 
 ```bash
+# Generate SQL schema files
 dart run build_runner build
+
+# Watch for changes and regenerate
+dart run build_runner watch
 ```
 
-This generates SQL files like:
+### 5️⃣ Generated Output
 
 ```sql
--- Basic table creation
+-- 📄 Generated: lib/models/user.schema.sql
+
+-- 🏗️ Create table with RLS enabled
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   email TEXT UNIQUE NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  full_name VARCHAR(100) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- With migration support - adds new columns safely
+-- 🔐 Enable Row Level Security
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+-- 🛡️ Create RLS policy
+CREATE POLICY users_own_data ON users 
+  FOR ALL 
+  USING (auth.uid() = id);
+
+-- ⚡ Create performance indexes
+CREATE UNIQUE INDEX users_email_idx ON users(email);
+
+-- 📝 Add table comment
+COMMENT ON TABLE users IS 'Application users with authentication';
+```
+
+---
+
+## 📖 Core Annotations
+
+### 🏗️ `@DatabaseTable`
+
+Configure table-level settings:
+
+```dart
+@DatabaseTable(
+  name: 'custom_table_name',      // 📝 Custom table name (optional)
+  enableRLS: true,                // 🔐 Row Level Security
+  comment: 'Table description',   // 📄 Documentation
+  partitionBy: RangePartition(    // 📊 Table partitioning
+    columns: ['created_at']
+  ),
+)
+class MyTable { }
+```
+
+### 🏷️ `@DatabaseColumn`
+
+Define column properties:
+
+```dart
+@DatabaseColumn(
+  name: 'custom_column_name',     // 📝 Custom column name
+  type: ColumnType.varchar(255),  // 🎯 PostgreSQL type
+  isNullable: false,              // ❌ NOT NULL constraint
+  isPrimaryKey: true,             // 🔑 Primary key
+  isUnique: true,                 // ⭐ Unique constraint
+  defaultValue: DefaultValue.currentTimestamp,  // 🔄 Default value
+  comment: 'Column description',  // 📄 Documentation
+  checkConstraints: ['value > 0'], // ✅ CHECK constraints
+)
+late String myField;
+```
+
+### 🔗 `@ForeignKey`
+
+Define relationships:
+
+```dart
+@ForeignKey(
+  table: 'users',                          // 🎯 Referenced table
+  column: 'id',                           // 🔗 Referenced column
+  onDelete: ForeignKeyAction.cascade,     // 🗑️ Delete behavior
+  onUpdate: ForeignKeyAction.restrict,    // 🔄 Update behavior
+)
+@DatabaseColumn(type: ColumnType.uuid)
+late String userId;
+```
+
+### ⚡ `@DatabaseIndex`
+
+Optimize performance:
+
+```dart
+// 📊 Composite index on table
+@DatabaseIndex(
+  name: 'user_status_created_idx',
+  columns: ['status', 'created_at'],
+  type: IndexType.btree,
+  isUnique: false,
+  where: "status != 'deleted'",  // 🎯 Partial index
+)
+class User { }
+
+// 🔍 Single column index
+@DatabaseIndex(type: IndexType.hash)
+@DatabaseColumn(type: ColumnType.text)
+late String status;
+```
+
+### 🛡️ `@RLSPolicy`
+
+Secure your data:
+
+```dart
+@RLSPolicy(
+  name: 'user_read_own',                    // 📝 Policy name
+  type: RLSPolicyType.select,              // 🎯 Operation type
+  condition: 'auth.uid() = user_id',       // 🔐 Access condition
+  roles: ['authenticated'],                // 👥 Database roles
+  comment: 'Users can read their own data', // 📄 Documentation
+)
+class UserData { }
+```
+
+---
+
+## 🔧 Configuration
+
+### 📋 Configuration Options
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `migration_mode` | string | `'createOnly'` | Migration strategy |
+| `enable_column_adding` | bool | `true` | Add missing columns |
+| `generate_do_blocks` | bool | `true` | Use DO blocks for safety |
+| `enable_rls_by_default` | bool | `false` | RLS on all tables |
+| `add_timestamps` | bool | `false` | Auto-add timestamps |
+| `use_explicit_nullability` | bool | `false` | Explicit NULL/NOT NULL |
+| `generate_comments` | bool | `true` | Include documentation |
+| `validate_schema` | bool | `true` | Schema validation |
+| `format_sql` | bool | `true` | Format SQL output |
+
+### 🎯 Environment-Specific Configurations
+
+**🔧 Development Setup:**
+```yaml
+options:
+  migration_mode: 'createOrAlter'    # Safe evolution
+  enable_rls_by_default: false       # Easier testing
+  generate_comments: true            # Full docs
+  validate_schema: true              # Catch errors
+  format_sql: true                  # Readable output
+```
+
+**🚀 Production Setup:**
+```yaml
+options:
+  migration_mode: 'createOrAlter'    # Safe migrations
+  enable_column_adding: true         # Allow evolution
+  generate_do_blocks: true           # Extra safety
+  validate_schema: true              # Strict validation
+  format_sql: true                  # Clean output
+```
+
+**🤖 CI/CD Pipeline:**
+```yaml
+options:
+  migration_mode: 'createOnly'       # Standard creation
+  validate_schema: true              # Fail on errors
+  generate_comments: false           # Minimal output
+  format_sql: true                  # Consistent format
+```
+
+---
+
+## 🗄️ Column Types & Constraints
+
+### 📊 PostgreSQL Column Types
+
+#### 📝 Text Types
+```dart
+ColumnType.text                    // TEXT
+ColumnType.varchar(255)            // VARCHAR(255)
+ColumnType.char(10)               // CHAR(10)
+```
+
+#### 🔢 Numeric Types
+```dart
+ColumnType.integer                 // INTEGER
+ColumnType.bigint                 // BIGINT
+ColumnType.decimal(10, 2)         // DECIMAL(10,2)
+ColumnType.real                   // REAL
+ColumnType.doublePrecision        // DOUBLE PRECISION
+ColumnType.serial                 // SERIAL
+ColumnType.bigserial             // BIGSERIAL
+```
+
+#### 📅 Date/Time Types
+```dart
+ColumnType.timestamp              // TIMESTAMP
+ColumnType.timestampWithTimeZone  // TIMESTAMPTZ
+ColumnType.date                   // DATE
+ColumnType.time                   // TIME
+ColumnType.interval              // INTERVAL
+```
+
+#### 🎯 Special Types
+```dart
+ColumnType.uuid                   // UUID
+ColumnType.boolean               // BOOLEAN
+ColumnType.json                  // JSON
+ColumnType.jsonb                 // JSONB
+ColumnType.bytea                 // BYTEA
+ColumnType.inet                  // INET
+ColumnType.macaddr              // MACADDR
+ColumnType.point                // POINT
+ColumnType.array(ColumnType.text) // TEXT[]
+```
+
+### 🔄 Default Values
+
+```dart
+// 📄 Literal values
+DefaultValue.none                 // NULL
+DefaultValue.zero                // 0
+DefaultValue.one                 // 1
+DefaultValue.emptyString         // ''
+DefaultValue.emptyArray          // ARRAY[]
+DefaultValue.emptyObject         // '{}'
+
+// ⚡ Functions
+DefaultValue.currentTimestamp    // CURRENT_TIMESTAMP
+DefaultValue.currentDate         // CURRENT_DATE
+DefaultValue.generateUuid        // gen_random_uuid()
+DefaultValue.autoIncrement       // nextval(sequence)
+
+// 🏭 Factory methods
+DefaultValue.string('value')     // 'value'
+DefaultValue.number(42)          // 42
+DefaultValue.boolean(true)       // true
+DefaultValue.expression('NOW()') // Custom expression
+```
+
+### ✅ Constraints
+
+```dart
+@DatabaseColumn(
+  // 🔑 Primary key
+  isPrimaryKey: true,
+  
+  // ⭐ Unique constraint
+  isUnique: true,
+  
+  // ❌ NOT NULL constraint
+  isNullable: false,
+  
+  // ✅ CHECK constraints
+  checkConstraints: [
+    'length(email) > 0',
+    'email ~* \'^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\$\'',
+  ],
+)
+late String email;
+```
+
+---
+
+## 🔐 Security & RLS Policies
+
+### 🛡️ RLS Policy Types
+
+```dart
+RLSPolicyType.all         // 🌟 All operations (CRUD)
+RLSPolicyType.select      // 👁️ Read operations only
+RLSPolicyType.insert      // ➕ Insert operations only
+RLSPolicyType.update      // ✏️ Update operations only
+RLSPolicyType.delete      // 🗑️ Delete operations only
+```
+
+### 🎯 Common RLS Patterns
+
+#### 👤 User Owns Data
+```dart
+@RLSPolicy(
+  name: 'users_own_data',
+  type: RLSPolicyType.all,
+  condition: 'auth.uid() = user_id',
+)
+```
+
+#### 🏢 Multi-tenant Isolation
+```dart
+@RLSPolicy(
+  name: 'tenant_isolation',
+  type: RLSPolicyType.all,
+  condition: 'tenant_id = auth.jwt() ->> "tenant_id"',
+)
+```
+
+#### 👥 Role-based Access
+```dart
+@RLSPolicy(
+  name: 'admin_full_access',
+  type: RLSPolicyType.all,
+  condition: 'auth.jwt() ->> "role" = "admin"',
+  roles: ['authenticated'],
+)
+
+@RLSPolicy(
+  name: 'user_read_only',
+  type: RLSPolicyType.select,
+  condition: 'auth.jwt() ->> "role" = "user"',
+  roles: ['authenticated'],
+)
+```
+
+#### 🕒 Time-based Access
+```dart
+@RLSPolicy(
+  name: 'active_records_only',
+  type: RLSPolicyType.select,
+  condition: 'expires_at > NOW() AND is_active = true',
+)
+```
+
+---
+
+## ⚡ Performance & Indexing
+
+### 🔍 Index Types
+
+```dart
+IndexType.btree       // 🌳 B-tree (default, general purpose)
+IndexType.hash        // #️⃣ Hash (equality only)
+IndexType.gin         // 🔍 GIN (JSON, arrays, full-text)
+IndexType.gist        // 🎯 GiST (geometric, full-text)
+IndexType.spgist      // 📊 SP-GiST (space-partitioned)
+IndexType.brin        // 📈 BRIN (large ordered tables)
+```
+
+### 📊 Index Strategies
+
+#### 🔍 Single Column Index
+```dart
+@DatabaseIndex(type: IndexType.btree)
+@DatabaseColumn(type: ColumnType.text)
+late String status;
+```
+
+#### 📈 Composite Index
+```dart
+@DatabaseIndex(
+  name: 'user_activity_idx',
+  columns: ['user_id', 'created_at', 'activity_type'],
+  type: IndexType.btree,
+)
+```
+
+#### 🎯 Partial Index
+```dart
+@DatabaseIndex(
+  name: 'active_users_idx',
+  columns: ['email'],
+  where: "status = 'active' AND deleted_at IS NULL",
+)
+```
+
+#### 🔍 Expression Index
+```dart
+@DatabaseIndex(
+  name: 'user_search_idx',
+  expression: "to_tsvector('english', name || ' ' || email)",
+  type: IndexType.gin,
+)
+```
+
+#### 📱 JSON Index
+```dart
+@DatabaseIndex(
+  name: 'metadata_search_idx',
+  expression: "(metadata -> 'tags')",
+  type: IndexType.gin,
+)
+```
+
+---
+
+## 🔄 Migration Support
+
+### 🎯 Migration Modes
+
+| Mode | Description | Use Case |
+|------|-------------|----------|
+| `createOnly` | Standard CREATE TABLE | 🆕 New projects |
+| `createIfNotExists` | CREATE TABLE IF NOT EXISTS | 🔒 Safe creation |
+| `createOrAlter` | CREATE + ALTER for new columns | 🔄 Schema evolution |
+| `alterOnly` | Only ALTER TABLE statements | 🛠️ Existing schemas |
+| `dropAndRecreate` | DROP and CREATE | 🧪 Development only |
+
+### 📝 Migration Examples
+
+#### 🆕 Adding New Column
+```dart
+// Add this field to existing User class
+@DatabaseColumn(
+  type: ColumnType.integer,
+  defaultValue: DefaultValue.zero,
+)
+int? age;
+```
+
+**Generated Migration:**
+```sql
+-- 🔄 Safe column addition
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -124,270 +585,108 @@ BEGIN
     ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 0;
   END IF;
 END $$;
-
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY users_own_data ON users 
-FOR ALL USING (auth.uid() = id);
 ```
 
-### 5. Advanced Features
-
-**Table Partitioning:**
+#### 🔗 Adding Foreign Key
 ```dart
-@DatabaseTable(
-  name: 'events',
-  partitionBy: RangePartition(columns: ['created_at']),
-)
-class Event { ... }
-```
-
-Generates:
-```sql
-CREATE TABLE events (..., PRIMARY KEY (id, created_at))
-PARTITION BY RANGE (created_at);
-```
-
-## Core Annotations
-
-### `@DatabaseTable`
-
-Marks a class as a database table with configuration options:
-
-```dart
-@DatabaseTable(
-  name: 'custom_table_name',      // Optional: defaults to snake_case class name
-  enableRLS: true,                // Enable Row Level Security
-  comment: 'Table description',   // Documentation comment
-)
-class MyTable { }
-```
-
-### `@DatabaseColumn`
-
-Configures individual table columns:
-
-```dart
-@DatabaseColumn(
-  name: 'custom_column_name',     // Optional: defaults to snake_case field name
-  type: ColumnType.varchar(255),  // PostgreSQL column type
-  isNullable: false,              // NULL constraint (default: true)
-  isPrimaryKey: true,             // PRIMARY KEY constraint
-  isUnique: true,                 // UNIQUE constraint
-  defaultValue: DefaultValue.currentTimestamp,
-  comment: 'Column description',
-  checkConstraints: ['value > 0'], // CHECK constraints
-)
-late String myField;
-```
-
-### `@ForeignKey`
-
-Defines foreign key relationships:
-
-```dart
+// Add relationship to existing table
 @ForeignKey(
-  table: 'users',
+  table: 'companies',
   column: 'id',
-  onDelete: ForeignKeyAction.cascade,
-  onUpdate: ForeignKeyAction.restrict,
+  onDelete: ForeignKeyAction.setNull,
 )
 @DatabaseColumn(type: ColumnType.uuid)
-late String userId;
+String? companyId;
 ```
 
-### `@DatabaseIndex`
+**Generated Migration:**
+```sql
+-- 🔗 Safe foreign key addition
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'users' AND column_name = 'company_id'
+  ) THEN
+    ALTER TABLE users ADD COLUMN company_id UUID;
+    ALTER TABLE users ADD CONSTRAINT users_company_id_fkey 
+      FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+```
 
-Creates database indexes for performance:
+### 🛡️ Safe Migration Practices
+
+```yaml
+# 🎯 Recommended production configuration
+options:
+  migration_mode: 'createOrAlter'     # Safe evolution
+  enable_column_adding: true          # Allow new columns
+  generate_do_blocks: true            # Extra safety checks
+  validate_schema: true               # Comprehensive validation
+```
+
+---
+
+## 🎯 Advanced Examples
+
+### 🏢 Multi-tenant SaaS Application
 
 ```dart
-// Class-level composite index
-@DatabaseIndex(
-  name: 'user_email_status_idx',
-  columns: ['email', 'status'],
-  type: IndexType.btree,
-  isUnique: true,
+@DatabaseTable(
+  name: 'documents',
+  enableRLS: true,
+  comment: 'Multi-tenant document storage',
 )
-class User { }
-
-// Field-level single column index
-@DatabaseIndex(type: IndexType.hash)
-@DatabaseColumn(type: ColumnType.text)
-late String status;
-```
-
-### `@RLSPolicy`
-
-Defines Row Level Security policies:
-
-```dart
-@RLSPolicy(
-  name: 'user_read_own',
-  type: RLSPolicyType.select,
-  condition: 'auth.uid() = user_id',
-  roles: ['authenticated'],
-  comment: 'Users can read their own data',
-)
-class UserData { }
-```
-
-## Column Types
-
-Complete PostgreSQL type support:
-
-```dart
-// Text types
-ColumnType.text
-ColumnType.varchar(255)
-ColumnType.char(10)
-
-// Numeric types  
-ColumnType.integer
-ColumnType.bigint
-ColumnType.decimal(10, 2)
-ColumnType.real
-ColumnType.doublePrecision
-
-// Date/Time types
-ColumnType.timestamp
-ColumnType.timestampWithTimeZone
-ColumnType.date
-ColumnType.time
-
-// JSON types
-ColumnType.json
-ColumnType.jsonb
-
-// Other types
-ColumnType.uuid
-ColumnType.boolean
-ColumnType.bytea
-ColumnType.inet
-```
-
-## Default Values
-
-Rich default value support:
-
-```dart
-// Literal values
-DefaultValue.none              // NULL
-DefaultValue.zero             // 0
-DefaultValue.one              // 1
-DefaultValue.emptyString      // ''
-DefaultValue.emptyArray       // ARRAY[]
-
-// Functions
-DefaultValue.currentTimestamp  // CURRENT_TIMESTAMP
-DefaultValue.currentDate      // CURRENT_DATE
-DefaultValue.generateUuid     // gen_random_uuid()
-DefaultValue.autoIncrement    // nextval(sequence)
-
-// Factory methods
-DefaultValue.string('value')   // 'value'
-DefaultValue.number(42)       // 42
-DefaultValue.boolean(true)    // true
-```
-
-## RLS Policy Types
-
-Control data access with fine-grained policies:
-
-```dart
-RLSPolicyType.all     // All operations (SELECT, INSERT, UPDATE, DELETE)
-RLSPolicyType.select  // Read operations only
-RLSPolicyType.insert  // Insert operations only  
-RLSPolicyType.update  // Update operations only
-RLSPolicyType.delete  // Delete operations only
-```
-
-## Foreign Key Actions
-
-Define referential integrity behavior:
-
-```dart
-ForeignKeyAction.noAction    // Prevent deletion/update (default)
-ForeignKeyAction.restrict    // Same as NO ACTION but not deferrable
-ForeignKeyAction.cascade     // Delete/update referencing rows
-ForeignKeyAction.setNull     // Set foreign key to NULL
-ForeignKeyAction.setDefault  // Set foreign key to default value
-```
-
-## Index Types
-
-Optimize queries with appropriate index types:
-
-```dart
-IndexType.btree    // General purpose (default)
-IndexType.hash     // Equality operations only
-IndexType.gin      // JSON, arrays, full-text search
-IndexType.gist     // Geometric data, full-text search
-IndexType.spgist   // Space-partitioned data
-IndexType.brin     // Large tables with natural ordering
-```
-
-## Advanced Examples
-
-### Multi-tenant Application
-
-```dart
-@DatabaseTable(enableRLS: true)
 @RLSPolicy(
   name: 'tenant_isolation',
   type: RLSPolicyType.all,
   condition: 'tenant_id = auth.jwt() ->> "tenant_id"',
 )
-@DatabaseIndex(columns: ['tenant_id', 'created_at'])
-class Document {
-  @DatabaseColumn(type: ColumnType.uuid, isPrimaryKey: true)
-  String? id;
-  
-  @DatabaseColumn(type: ColumnType.uuid, isNullable: false)
-  late String tenantId;
-  
-  @DatabaseColumn(type: ColumnType.text)
-  late String title;
-}
-```
-
-### Full-text Search
-
-```dart
-@DatabaseTable()
 @DatabaseIndex(
-  type: IndexType.gin,
-  expression: "to_tsvector('english', title || ' ' || content)",
+  name: 'documents_tenant_created_idx',
+  columns: ['tenant_id', 'created_at'],
 )
-class Article {
-  @DatabaseColumn(type: ColumnType.text)
-  late String title;
-  
-  @DatabaseColumn(type: ColumnType.text)  
-  late String content;
-}
-```
-
-### Audit Trail
-
-```dart
-@DatabaseTable()
-@DatabaseIndex(columns: ['entity_type', 'entity_id', 'created_at'])
-class AuditLog {
-  @DatabaseColumn(type: ColumnType.uuid, isPrimaryKey: true)
+@DatabaseIndex(
+  name: 'documents_search_idx',
+  expression: "to_tsvector('english', title || ' ' || content)",
+  type: IndexType.gin,
+)
+class Document {
+  @DatabaseColumn(
+    type: ColumnType.uuid,
+    isPrimaryKey: true,
+    defaultValue: DefaultValue.generateUuid,
+  )
   String? id;
-  
-  @DatabaseColumn(type: ColumnType.text, isNullable: false)
-  late String entityType;
-  
-  @DatabaseColumn(type: ColumnType.uuid, isNullable: false)
-  late String entityId;
-  
-  @DatabaseColumn(type: ColumnType.text, isNullable: false)
-  late String action;
-  
-  @DatabaseColumn(type: ColumnType.jsonb)
-  Map<String, dynamic>? changes;
-  
+
+  @ForeignKey(
+    table: 'tenants',
+    column: 'id',
+    onDelete: ForeignKeyAction.cascade,
+  )
+  @DatabaseColumn(
+    type: ColumnType.uuid,
+    isNullable: false,
+  )
+  late String tenantId;
+
+  @DatabaseColumn(
+    type: ColumnType.text,
+    isNullable: false,
+    checkConstraints: ['length(title) > 0'],
+  )
+  late String title;
+
+  @DatabaseColumn(type: ColumnType.text)
+  String? content;
+
+  @DatabaseColumn(
+    type: ColumnType.jsonb,
+    defaultValue: DefaultValue.emptyObject,
+  )
+  Map<String, dynamic>? metadata;
+
   @DatabaseColumn(
     type: ColumnType.timestampWithTimeZone,
     defaultValue: DefaultValue.currentTimestamp,
@@ -396,175 +695,372 @@ class AuditLog {
 }
 ```
 
-## Best Practices
+### 🛒 E-commerce System
 
-### 1. Naming Conventions
-- Use descriptive, meaningful names
-- Follow PostgreSQL naming conventions (snake_case)
-- Keep names under 63 characters
+```dart
+@DatabaseTable(
+  name: 'orders',
+  enableRLS: true,
+  comment: 'Customer orders with audit trail',
+)
+@RLSPolicy(
+  name: 'customers_own_orders',
+  type: RLSPolicyType.select,
+  condition: 'customer_id = auth.uid()',
+)
+@RLSPolicy(
+  name: 'staff_manage_orders',
+  type: RLSPolicyType.all,
+  condition: 'auth.jwt() ->> "role" IN ("admin", "staff")',
+)
+@DatabaseIndex(
+  name: 'orders_customer_status_idx',
+  columns: ['customer_id', 'status', 'created_at'],
+)
+@DatabaseIndex(
+  name: 'orders_total_idx',
+  columns: ['total_amount'],
+  where: "status != 'cancelled'",
+)
+class Order {
+  @DatabaseColumn(
+    type: ColumnType.uuid,
+    isPrimaryKey: true,
+    defaultValue: DefaultValue.generateUuid,
+  )
+  String? id;
 
-### 2. RLS Security
-- Always enable RLS on tables with sensitive data
-- Use specific policy conditions
-- Test policies thoroughly
-- Document security requirements
+  @ForeignKey(
+    table: 'customers',
+    column: 'id',
+    onDelete: ForeignKeyAction.restrict,
+  )
+  @DatabaseColumn(
+    type: ColumnType.uuid,
+    isNullable: false,
+  )
+  late String customerId;
 
-### 3. Performance Optimization
-- Add indexes on frequently queried columns
-- Use partial indexes for filtered queries
-- Consider composite indexes for multi-column queries
-- Monitor query performance
+  @DatabaseColumn(
+    type: ColumnType.varchar(20),
+    defaultValue: DefaultValue.string('pending'),
+    checkConstraints: [
+      "status IN ('pending', 'processing', 'shipped', 'delivered', 'cancelled')"
+    ],
+  )
+  late String status;
 
-### 4. Schema Evolution
-- Use migrations for schema changes
-- Test migrations on staging data
-- Plan for rollback scenarios
-- Document breaking changes
+  @DatabaseColumn(
+    type: ColumnType.decimal(10, 2),
+    isNullable: false,
+    checkConstraints: ['total_amount >= 0'],
+  )
+  late double totalAmount;
 
-## Migration Workflow
+  @DatabaseColumn(
+    type: ColumnType.jsonb,
+    comment: 'Order line items with product details',
+  )
+  List<Map<String, dynamic>>? items;
 
-1. **Define Models**: Create or modify annotated Dart classes
-2. **Generate Schema**: Run `dart run build_runner build`
-3. **Review SQL**: Examine generated SQL files
-4. **Test Locally**: Apply to local database
-5. **Create Migration**: Version and apply to production
+  @DatabaseColumn(
+    type: ColumnType.timestampWithTimeZone,
+    defaultValue: DefaultValue.currentTimestamp,
+  )
+  late DateTime createdAt;
 
-## Configuration Options
-
-The generator can be extensively configured via `build.yaml` options:
-
-
-### Schema Configuration
-- **`enable_rls_by_default`** (bool, default: `false`): Enable Row Level Security on all tables automatically
-- **`add_timestamps`** (bool, default: `false`): Automatically add `created_at` and `updated_at` columns to all tables
-
-### Code Generation Options
-- **`use_explicit_nullability`** (bool, default: `false`): Always specify `NULL`/`NOT NULL` explicitly in column definitions
-- **`generate_comments`** (bool, default: `true`): Include documentation comments in generated SQL
-- **`validate_schema`** (bool, default: `true`): Perform comprehensive schema validation during generation
-- **`format_sql`** (bool, default: `true`): Format generated SQL for better readability
-
-### Configuration Examples
-
-**Development Setup:**
-```yaml
-options:
-  enable_rls_by_default: false      # Disable for easier testing
-  add_timestamps: false             # Keep clean schema
-  generate_comments: true           # Full documentation
-  validate_schema: true             # Catch errors early
-  format_sql: true                 # Readable output
+  @DatabaseColumn(
+    type: ColumnType.timestampWithTimeZone,
+    defaultValue: DefaultValue.currentTimestamp,
+  )
+  late DateTime updatedAt;
+}
 ```
 
-**Production Setup:**
-```yaml
-options:
-  enable_rls_by_default: false      # Configure as needed
-  use_explicit_nullability: false   # Use defaults
-  validate_schema: true             # Strict validation
-  generate_comments: true           # Documentation
-  format_sql: true                 # Readable output
+### 📊 Analytics & Logging
+
+```dart
+@DatabaseTable(
+  name: 'events',
+  comment: 'Application event tracking',
+  partitionBy: RangePartition(columns: ['created_at']),
+)
+@DatabaseIndex(
+  name: 'events_type_created_idx',
+  columns: ['event_type', 'created_at'],
+)
+@DatabaseIndex(
+  name: 'events_user_session_idx',
+  columns: ['user_id', 'session_id'],
+  where: "user_id IS NOT NULL",
+)
+@DatabaseIndex(
+  name: 'events_properties_idx',
+  expression: "(properties -> 'category')",
+  type: IndexType.gin,
+)
+class Event {
+  @DatabaseColumn(
+    type: ColumnType.uuid,
+    isPrimaryKey: true,
+    defaultValue: DefaultValue.generateUuid,
+  )
+  String? id;
+
+  @DatabaseColumn(
+    type: ColumnType.varchar(50),
+    isNullable: false,
+  )
+  late String eventType;
+
+  @DatabaseColumn(type: ColumnType.uuid)
+  String? userId;
+
+  @DatabaseColumn(type: ColumnType.uuid)
+  String? sessionId;
+
+  @DatabaseColumn(
+    type: ColumnType.jsonb,
+    defaultValue: DefaultValue.emptyObject,
+  )
+  Map<String, dynamic>? properties;
+
+  @DatabaseColumn(
+    type: ColumnType.inet,
+    comment: 'Client IP address',
+  )
+  String? ipAddress;
+
+  @DatabaseColumn(
+    type: ColumnType.text,
+    comment: 'User agent string',
+  )
+  String? userAgent;
+
+  @DatabaseColumn(
+    type: ColumnType.timestampWithTimeZone,
+    defaultValue: DefaultValue.currentTimestamp,
+    isNullable: false,
+  )
+  late DateTime createdAt;
+}
 ```
-
-**CI/CD Pipeline:**
-```yaml
-options:
-  enable_rls_by_default: false      # Configure as needed
-  validate_schema: true             # Fail on errors
-  generate_comments: true           # Include documentation
-  format_sql: true                 # Consistent format
-```
-
-## Validation
-
-The package includes comprehensive validation:
-
-- **Type Safety**: Ensures Dart types match PostgreSQL types
-- **Constraint Validation**: Validates CHECK constraints and foreign keys
-- **RLS Policy Validation**: Checks policy syntax and logic
-- **Index Validation**: Validates index types and configurations
-- **Naming Validation**: Ensures valid PostgreSQL identifiers
-
-## Error Handling
-
-Detailed error messages help diagnose issues:
-
-```
-Error: Column type 'VARCHAR' requires a length specification for field 'name' in table 'users'
-Suggestion: Use ColumnType.varchar(255) instead of ColumnType.varchar()
-```
-
-## Migration Support
-
-This package now includes comprehensive migration support to handle existing database schemas gracefully. Instead of failing when tables already exist, you can configure different migration strategies.
-
-### Quick Migration Setup
-
-```yaml
-# For safe schema evolution (recommended)
-targets:
-  $default:
-    builders:
-      supabase_annotations|schema_builder:
-        options:
-          migration_mode: 'createOrAlter'    # Creates table if not exists, adds missing columns
-          enable_column_adding: true         # Allow adding new columns
-          generate_do_blocks: true           # Use PostgreSQL DO blocks for safety
-```
-
-### Migration Modes
-
-- **`createOnly`** (Default): Original behavior - standard CREATE TABLE
-- **`createIfNotExists`**: Safe table creation - CREATE TABLE IF NOT EXISTS  
-- **`createOrAlter`**: Best for evolution - CREATE IF NOT EXISTS + ALTER TABLE for new columns
-- **`alterOnly`**: Only generate ALTER TABLE statements for existing schemas
-- **`dropAndRecreate`**: Drop and recreate (development only)
-
-### Example Output
-
-With `createOrAlter` mode, adding a new field to an existing table generates:
-
-```sql
--- Creates table if it doesn't exist
-CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY,
-  email TEXT NOT NULL UNIQUE,
-  name TEXT
-);
-
--- Safely adds new columns if they don't exist
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_name = 'users' AND column_name = 'age'
-  ) THEN
-    ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 0;
-  END IF;
-END $$;
-```
-
-For complete migration documentation, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md).
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Ensure all tests pass
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-- 📚 [Documentation](https://pub.dev/packages/supabase_annotations)
-- 🐛 [Issue Tracker](https://github.com/ahmtydn/supabase_annotations/issues)
-- 💬 [Discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
-- 📧 [Contact](https://github.com/ahmtydn)
 
 ---
 
-Built with ❤️ for the Supabase and Dart communities.
+## 📝 Best Practices
+
+### 🏗️ Schema Design
+
+#### ✅ **DO:**
+- Use descriptive, meaningful names
+- Follow PostgreSQL naming conventions (snake_case)
+- Keep names under 63 characters
+- Add comprehensive comments and documentation
+- Use appropriate column types for your data
+
+#### ❌ **DON'T:**
+- Use reserved keywords as names
+- Create overly complex nested structures
+- Forget to add indexes on frequently queried columns
+- Skip validation constraints
+
+### 🔐 Security Guidelines
+
+#### ✅ **DO:**
+- Always enable RLS on tables with sensitive data
+- Use specific, restrictive policy conditions
+- Test policies thoroughly with different user roles
+- Document security requirements and assumptions
+- Use parameterized conditions to prevent injection
+
+#### ❌ **DON'T:**
+- Rely solely on application-level security
+- Create overly permissive policies
+- Forget to test edge cases in policy conditions
+- Hardcode user IDs in policies
+
+### ⚡ Performance Optimization
+
+#### ✅ **DO:**
+- Add indexes on frequently queried columns
+- Use composite indexes for multi-column queries
+- Consider partial indexes for filtered queries
+- Use appropriate index types for your use case
+- Monitor query performance regularly
+
+#### ❌ **DON'T:**
+- Create too many indexes (impacts write performance)
+- Index every column "just in case"
+- Forget to maintain statistics on large tables
+- Ignore query execution plans
+
+### 🔄 Migration Management
+
+#### ✅ **DO:**
+- Use migration modes for schema evolution
+- Test migrations on staging data first
+- Plan for rollback scenarios
+- Document breaking changes thoroughly
+- Use `createOrAlter` mode for production
+
+#### ❌ **DON'T:**
+- Drop tables or columns without backup
+- Skip testing migrations
+- Apply untested migrations to production
+- Forget to version your schema changes
+
+---
+
+## 🛠️ Development
+
+### 🚀 Getting Started
+
+```bash
+# Clone the repository
+git clone https://github.com/ahmtydn/supabase_annotations.git
+cd supabase_annotations
+
+# Install dependencies
+dart pub get
+
+# Run tests
+dart test
+
+# Run analysis
+dart analyze
+
+# Generate documentation
+dart doc
+```
+
+### 🧪 Running Examples
+
+```bash
+# Navigate to examples
+cd example
+
+# Generate schemas for all examples
+dart run build_runner build
+
+# View generated SQL files
+ls lib/*.schema.sql
+```
+
+### 🔍 Project Structure
+
+```
+lib/
+├── builder.dart                 # Build configuration
+├── supabase_annotations.dart    # Public API
+└── src/
+    ├── annotations/             # Annotation definitions
+    │   ├── database_column.dart
+    │   ├── database_index.dart
+    │   ├── database_table.dart
+    │   ├── foreign_key.dart
+    │   └── rls_policy.dart
+    ├── generators/              # Code generation logic
+    │   └── schema_generator.dart
+    └── models/                  # Data models
+        ├── column_types.dart
+        ├── default_values.dart
+        ├── foreign_key_actions.dart
+        ├── index_types.dart
+        ├── migration_config.dart
+        ├── partition_strategy.dart
+        ├── table_constraints.dart
+        └── validators.dart
+```
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+### 🐛 Bug Reports
+
+- Use the [issue tracker](https://github.com/ahmtydn/supabase_annotations/issues)
+- Include a minimal reproduction case
+- Provide environment details (Dart version, OS, etc.)
+
+### 💡 Feature Requests
+
+- Check existing [discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
+- Explain the use case and benefits
+- Consider implementation complexity
+
+### 🔧 Pull Requests
+
+1. **Fork** the repository
+2. **Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **Add** tests for new functionality
+4. **Ensure** all tests pass (`dart test`)
+5. **Run** analysis (`dart analyze`)
+6. **Commit** changes (`git commit -m 'Add amazing feature'`)
+7. **Push** to branch (`git push origin feature/amazing-feature`)
+8. **Submit** a pull request
+
+### 📋 Development Guidelines
+
+- Follow the existing code style
+- Add comprehensive tests
+- Update documentation
+- Include examples for new features
+- Ensure backward compatibility
+
+---
+
+## 📞 Support & Community
+
+### 📚 **Documentation**
+- [API Reference](https://pub.dev/documentation/supabase_annotations/latest/)
+- [Migration Guide](https://github.com/ahmtydn/supabase_annotations/blob/main/MIGRATION_GUIDE.md)
+- [Examples](https://github.com/ahmtydn/supabase_annotations/tree/main/example)
+
+### 💬 **Community**
+- [GitHub Discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
+- [Issue Tracker](https://github.com/ahmtydn/supabase_annotations/issues)
+
+### 🆘 **Need Help?**
+- Check the [FAQ](https://github.com/ahmtydn/supabase_annotations/discussions/categories/q-a)
+- Search existing [issues](https://github.com/ahmtydn/supabase_annotations/issues)
+- Ask in [discussions](https://github.com/ahmtydn/supabase_annotations/discussions)
+
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Supabase Team** - For creating an amazing platform
+- **Dart Team** - For excellent tooling and language features
+- **PostgreSQL Community** - For the world's most advanced open source database
+- **Contributors** - For making this project better
+
+---
+
+## 🌟 Show Your Support
+
+If this project helped you, please consider:
+
+- ⭐ **Star** the repository
+- 🔗 **Share** with your team
+- 🐛 **Report** issues
+- 💡 **Suggest** improvements
+- 🤝 **Contribute** code
+
+---
+
+<div align="center">
+
+**Built with ❤️ for the Supabase and Dart communities**
+
+[🌐 Website](https://github.com/ahmtydn/supabase_annotations) • [📚 Docs](https://pub.dev/packages/supabase_annotations) • [💬 Community](https://github.com/ahmtydn/supabase_annotations/discussions)
+
+</div>
