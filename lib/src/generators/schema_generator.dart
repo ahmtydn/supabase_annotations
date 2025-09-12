@@ -1076,7 +1076,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
     try {
       final type = partitionReader.objectValue.type;
-      final typeName = type?.getDisplayString(withNullability: false);
+      final typeName = type?.getDisplayString();
 
       switch (typeName) {
         case 'RangePartition':

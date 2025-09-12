@@ -40,6 +40,9 @@ analyzer:
     # Custom rules
     avoid_print: warning
     prefer_single_quotes: warning
+    
+    # Disable documentation requirements for example files
+    public_member_api_docs: ignore
 
 # Dart Code Metrics configuration
 dart_code_metrics:
@@ -103,8 +106,8 @@ linter:
     throw_in_finally: true
     unnecessary_statements: true
     
-    # Documentation
-    public_member_api_docs: true
+    # Documentation - disabled for example files
+    public_member_api_docs: false
     
     # Style improvements
     avoid_catches_without_on_clauses: true

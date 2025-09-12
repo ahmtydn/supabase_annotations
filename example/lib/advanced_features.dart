@@ -160,6 +160,7 @@ class UserRole {
   ],
 )
 class UserSession {
+  /// Constructor with required and optional fields
   UserSession({
     required this.userId,
     required this.sessionToken,
