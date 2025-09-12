@@ -10,6 +10,7 @@ A code generator for creating Supabase/PostgreSQL database schemas from Dart mod
 ⚡ **Performance**: Index creation and optimization  
 📝 **Documentation**: Inline documentation generation  
 ✅ **Validation**: Schema validation with error reporting  
+🔄 **Migration Support**: Safe schema evolution with multiple migration modes  
 
 ## Quick Start
 
@@ -42,6 +43,11 @@ targets:
             - lib/**.g.dart
             - lib/**.schema.dart
         options:
+          # Migration strategy (NEW!)
+          migration_mode: 'createOnly'             # Migration strategy: createOnly, createIfNotExists, createOrAlter, alterOnly, dropAndRecreate
+          enable_column_adding: true               # Add missing columns in migration modes
+          generate_do_blocks: true                 # Use PostgreSQL DO blocks for safety
+          
           # Schema configuration
           enable_rls_by_default: false             # Enable RLS on all tables by default
           add_timestamps: false                    # Auto-add created_at/updated_at columns
@@ -458,6 +464,58 @@ Detailed error messages help diagnose issues:
 Error: Column type 'VARCHAR' requires a length specification for field 'name' in table 'users'
 Suggestion: Use ColumnType.varchar(255) instead of ColumnType.varchar()
 ```
+
+## Migration Support
+
+This package now includes comprehensive migration support to handle existing database schemas gracefully. Instead of failing when tables already exist, you can configure different migration strategies.
+
+### Quick Migration Setup
+
+```yaml
+# For safe schema evolution (recommended)
+targets:
+  $default:
+    builders:
+      supabase_annotations|schema_builder:
+        options:
+          migration_mode: 'createOrAlter'    # Creates table if not exists, adds missing columns
+          enable_column_adding: true         # Allow adding new columns
+          generate_do_blocks: true           # Use PostgreSQL DO blocks for safety
+```
+
+### Migration Modes
+
+- **`createOnly`** (Default): Original behavior - standard CREATE TABLE
+- **`createIfNotExists`**: Safe table creation - CREATE TABLE IF NOT EXISTS  
+- **`createOrAlter`**: Best for evolution - CREATE IF NOT EXISTS + ALTER TABLE for new columns
+- **`alterOnly`**: Only generate ALTER TABLE statements for existing schemas
+- **`dropAndRecreate`**: Drop and recreate (development only)
+
+### Example Output
+
+With `createOrAlter` mode, adding a new field to an existing table generates:
+
+```sql
+-- Creates table if it doesn't exist
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  name TEXT
+);
+
+-- Safely adds new columns if they don't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'users' AND column_name = 'age'
+  ) THEN
+    ALTER TABLE users ADD COLUMN age INTEGER DEFAULT 0;
+  END IF;
+END $$;
+```
+
+For complete migration documentation, see [MIGRATION_GUIDE.md](MIGRATION_GUIDE.md).
 
 ## Contributing
 

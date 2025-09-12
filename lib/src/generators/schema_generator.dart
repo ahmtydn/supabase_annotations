@@ -19,6 +19,7 @@ import 'package:supabase_annotations/src/models/column_types.dart';
 import 'package:supabase_annotations/src/models/default_values.dart';
 import 'package:supabase_annotations/src/models/foreign_key_actions.dart';
 import 'package:supabase_annotations/src/models/index_types.dart';
+import 'package:supabase_annotations/src/models/migration_config.dart';
 import 'package:supabase_annotations/src/models/validators.dart';
 
 /// Configuration for the schema generator.
@@ -31,10 +32,19 @@ class SchemaGeneratorConfig {
     this.useExplicitNullability = false,
     this.generateComments = true,
     this.validateSchema = true,
+    this.migrationConfig = const MigrationConfig(),
   });
 
   /// Creates a new configuration from build options.
   factory SchemaGeneratorConfig.fromOptions(Map<String, dynamic> options) {
+    // Parse migration mode
+    final migrationModeStr =
+        options['migration_mode'] as String? ?? 'createOnly';
+    final migrationMode = MigrationMode.values.firstWhere(
+      (e) => e.toString().split('.').last == migrationModeStr,
+      orElse: () => MigrationMode.createOnly,
+    );
+
     return SchemaGeneratorConfig(
       formatSql: options['format_sql'] as bool? ?? true,
       enableRlsByDefault: options['enable_rls_by_default'] as bool? ?? false,
@@ -43,6 +53,18 @@ class SchemaGeneratorConfig {
           options['use_explicit_nullability'] as bool? ?? false,
       generateComments: options['generate_comments'] as bool? ?? true,
       validateSchema: options['validate_schema'] as bool? ?? true,
+      migrationConfig: MigrationConfig(
+        mode: migrationMode,
+        enableColumnAdding: options['enable_column_adding'] as bool? ?? true,
+        enableColumnModification:
+            options['enable_column_modification'] as bool? ?? true,
+        enableColumnDropping:
+            options['enable_column_dropping'] as bool? ?? false,
+        enableIndexCreation: options['enable_index_creation'] as bool? ?? true,
+        enableConstraintModification:
+            options['enable_constraint_modification'] as bool? ?? true,
+        generateDoBlocks: options['generate_do_blocks'] as bool? ?? true,
+      ),
     );
   }
 
@@ -63,6 +85,9 @@ class SchemaGeneratorConfig {
 
   /// Whether to validate schema consistency and constraints.
   final bool validateSchema;
+
+  /// Migration configuration for handling existing schemas.
+  final MigrationConfig migrationConfig;
 
   /// Whether comments should be included (unified property).
   bool get shouldIncludeComments => generateComments;
@@ -607,7 +632,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
         'delete' => RLSPolicyType.delete,
         _ => null,
       };
-    } catch (e) {
+    } on Exception {
       return null;
     }
   }
@@ -644,6 +669,33 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Generates the CREATE TABLE SQL statement.
   String _generateCreateTableSql(
+    String tableName,
+    List<_ColumnInfo> fields,
+    DatabaseTable tableConfig,
+  ) {
+    final migrationMode = config.migrationConfig.mode;
+
+    // Handle different migration modes
+    switch (migrationMode) {
+      case MigrationMode.createOnly:
+        return _generateBasicCreateTable(tableName, fields, tableConfig);
+
+      case MigrationMode.createIfNotExists:
+        return _generateCreateTableIfNotExists(tableName, fields, tableConfig);
+
+      case MigrationMode.createOrAlter:
+        return _generateCreateOrAlterTable(tableName, fields, tableConfig);
+
+      case MigrationMode.alterOnly:
+        return _generateAlterTableOnly(tableName, fields, tableConfig);
+
+      case MigrationMode.dropAndRecreate:
+        return _generateDropAndRecreateTable(tableName, fields, tableConfig);
+    }
+  }
+
+  /// Generates a basic CREATE TABLE statement (original behavior).
+  String _generateBasicCreateTable(
     String tableName,
     List<_ColumnInfo> fields,
     DatabaseTable tableConfig,
@@ -697,6 +749,123 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     }
 
     lines.add(');');
+
+    return lines.join('\n');
+  }
+
+  /// Generates CREATE TABLE IF NOT EXISTS statement.
+  String _generateCreateTableIfNotExists(
+    String tableName,
+    List<_ColumnInfo> fields,
+    DatabaseTable tableConfig,
+  ) {
+    final basicCreate =
+        _generateBasicCreateTable(tableName, fields, tableConfig);
+    return basicCreate.replaceFirst(
+        'CREATE TABLE', 'CREATE TABLE IF NOT EXISTS');
+  }
+
+  /// Generates CREATE TABLE IF NOT EXISTS followed by ALTER statements.
+  String _generateCreateOrAlterTable(
+    String tableName,
+    List<_ColumnInfo> fields,
+    DatabaseTable tableConfig,
+  ) {
+    final statements = <String>[];
+
+    // First create table if not exists
+    statements
+        .add(_generateCreateTableIfNotExists(tableName, fields, tableConfig));
+
+    // Then generate ALTER statements for each column
+    if (config.migrationConfig.enableColumnAdding) {
+      statements.add(_generateAlterTableAddColumns(tableName, fields));
+    }
+
+    return statements.where((s) => s.isNotEmpty).join('\n\n');
+  }
+
+  /// Generates only ALTER TABLE statements.
+  String _generateAlterTableOnly(
+    String tableName,
+    List<_ColumnInfo> fields,
+    DatabaseTable tableConfig,
+  ) {
+    final statements = <String>[];
+
+    if (config.migrationConfig.enableColumnAdding) {
+      statements.add(_generateAlterTableAddColumns(tableName, fields));
+    }
+
+    return statements.where((s) => s.isNotEmpty).join('\n\n');
+  }
+
+  /// Generates DROP and CREATE TABLE statements.
+  String _generateDropAndRecreateTable(
+    String tableName,
+    List<_ColumnInfo> fields,
+    DatabaseTable tableConfig,
+  ) {
+    final statements = <String>[];
+
+    statements.add('DROP TABLE IF EXISTS $tableName CASCADE;');
+    statements.add(_generateBasicCreateTable(tableName, fields, tableConfig));
+
+    return statements.join('\n\n');
+  }
+
+  /// Generates ALTER TABLE statements to add columns conditionally.
+  String _generateAlterTableAddColumns(
+    String tableName,
+    List<_ColumnInfo> fields,
+  ) {
+    if (!config.migrationConfig.generateDoBlocks) {
+      // Simple ALTER TABLE ADD COLUMN IF NOT EXISTS statements
+      final statements = <String>[];
+
+      for (final field in fields) {
+        final fieldName = field.field.name;
+        final annotation = field.annotation ?? const DatabaseColumn();
+        final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+        final sqlType = annotation.getFullSqlType();
+        final constraints = _getColumnConstraints(annotation);
+
+        final constraintStr =
+            constraints.isNotEmpty ? ' ${constraints.join(' ')}' : '';
+        statements.add(
+            'ALTER TABLE $tableName ADD COLUMN IF NOT EXISTS $columnName $sqlType$constraintStr;');
+      }
+
+      return statements.join('\n');
+    }
+
+    // Generate DO block for conditional column addition
+    final lines = <String>[];
+    lines.add(r'DO $$');
+    lines.add('BEGIN');
+
+    for (final field in fields) {
+      final fieldName = field.field.name;
+      final annotation = field.annotation ?? const DatabaseColumn();
+      final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+      final sqlType = annotation.getFullSqlType();
+      final constraints = _getColumnConstraints(annotation);
+
+      final constraintStr =
+          constraints.isNotEmpty ? ' ${constraints.join(' ')}' : '';
+
+      lines.add('  IF NOT EXISTS (');
+      lines.add('    SELECT 1 FROM information_schema.columns');
+      lines.add(
+          "    WHERE table_name = '$tableName' AND column_name = '$columnName'");
+      lines.add('  ) THEN');
+      lines.add(
+          '    ALTER TABLE $tableName ADD COLUMN $columnName $sqlType$constraintStr;');
+      lines.add('  END IF;');
+      lines.add('');
+    }
+
+    lines.add(r'END $$;');
 
     return lines.join('\n');
   }

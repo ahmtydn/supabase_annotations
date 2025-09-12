@@ -4,13 +4,9 @@ targets:
       supabase_annotations|schema_builder:
         enabled: true
         options:
-          migration_mode: 'createOrAlter'
+          migration_mode: 'createIfNotExists'
           format_sql: true
           generate_comments: true
           enable_rls_by_default: false
-          enable_column_adding: true
-          enable_column_modification: true
-          enable_index_creation: true
-          generate_do_blocks: true
         generate_for:
           - lib/**.dart

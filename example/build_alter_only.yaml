@@ -4,7 +4,7 @@ targets:
       supabase_annotations|schema_builder:
         enabled: true
         options:
-          migration_mode: 'createOrAlter'
+          migration_mode: 'alterOnly'
           format_sql: true
           generate_comments: true
           enable_rls_by_default: false
