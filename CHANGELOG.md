@@ -5,7 +5,7 @@ All notable changes to the Supabase Schema Generator package will be documented 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.0] - 2025-09-12
+## [1.1.0]
 
 ### Added
 - **🚀 Migration Support**: Complete schema migration system with 5 migration modes:
@@ -125,7 +125,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Documentation**: Updated README with correct configuration examples
 - **Package Metadata**: Cleaned up pubspec.yaml for better package management
 
-## [1.0.0] - 2025-09-12
+## [1.0.0]
 
 ### Added
 
