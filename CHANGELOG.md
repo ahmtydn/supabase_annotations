@@ -5,6 +5,13 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.4]
+
+### Improved
+- **🔧 Schema Generator**: Refactored Supabase schema builder and generator for improved annotation handling
+- **📦 Dependencies**: Updated source_gen version alignment with compatibility requirements
+- **🛠️ Code Quality**: Enhanced builder.dart for better maintainability
+
 ## [1.1.3]
 
 ### Improved
