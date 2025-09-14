@@ -152,8 +152,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
       // Extract class information
       final className = element.name;
-      final tableName =
-          tableConfig.name ?? _toSnakeCase(className ?? 'UnknownTable');
+      final tableName = tableConfig.name ?? _toSnakeCase(className);
 
       // Process fields and annotations
       final fields = _processFields(element);
@@ -184,7 +183,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       // 3. Add foreign key constraints
       for (final field in fields) {
         if (field.foreignKey != null) {
-          final fieldName = field.field.name ?? 'unknown';
+          final fieldName = field.field.name;
           final columnName =
               field.annotation?.getEffectiveName(fieldName) ?? fieldName;
           sqlComponents
@@ -275,8 +274,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final existingColumnNames = columns
           .map(
             (c) =>
-                c.annotation?.getEffectiveName(c.field.name ?? 'unknown') ??
-                (c.field.name ?? 'unknown'),
+                c.annotation?.getEffectiveName(c.field.name) ?? (c.field.name),
           )
           .toSet();
 
@@ -314,7 +312,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Gets the DatabaseColumn annotation for a field.
   DatabaseColumn? _getColumnAnnotation(FieldElement field) {
-    for (final annotation in field.metadata.annotations) {
+    for (final annotation in field.metadata) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'DatabaseColumn') {
         return _parseDatabaseColumnAnnotation(
@@ -327,7 +325,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
   /// Gets the ForeignKey annotation for a field.
   ForeignKey? _getForeignKeyAnnotation(FieldElement field) {
-    for (final annotation in field.metadata.annotations) {
+    for (final annotation in field.metadata) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'ForeignKey') {
         return _parseForeignKeyAnnotation(
@@ -483,7 +481,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   List<DatabaseIndex> _processIndexes(ClassElement classElement) {
     final indexes = <DatabaseIndex>[];
 
-    for (final annotation in classElement.metadata.annotations) {
+    for (final annotation in classElement.metadata) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'DatabaseIndex') {
         final indexAnnotation = _parseDatabaseIndexAnnotation(
@@ -559,7 +557,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   List<RLSPolicy> _processPolicies(ClassElement classElement) {
     final policies = <RLSPolicy>[];
 
-    for (final annotation in classElement.metadata.annotations) {
+    for (final annotation in classElement.metadata) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'RLSPolicy') {
         final policyAnnotation = _parseRLSPolicyAnnotation(
@@ -651,7 +649,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     }
 
     // Add composite foreign keys from class annotations
-    for (final annotation in classElement.metadata.annotations) {
+    for (final annotation in classElement.metadata) {
       final annotationValue = annotation.computeConstantValue();
       if (annotationValue?.type?.element?.name == 'ForeignKey') {
         final foreignKeyAnnotation = _parseForeignKeyAnnotation(
@@ -709,7 +707,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final annotation = field.annotation ?? const DatabaseColumn();
       if (annotation.isPrimaryKey) {
         final fieldName = field.field.name;
-        final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+        final columnName = annotation.getEffectiveName(fieldName);
         primaryKeyColumns.add(columnName);
       }
     }
@@ -733,7 +731,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final annotation = field.annotation ?? const DatabaseColumn();
 
       // Get effective column name
-      final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+      final columnName = annotation.getEffectiveName(fieldName);
 
       // Build column definition
       final columnDef = <String>['  $columnName', annotation.getFullSqlType()];
@@ -849,7 +847,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       for (final field in fields) {
         final fieldName = field.field.name;
         final annotation = field.annotation ?? const DatabaseColumn();
-        final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+        final columnName = annotation.getEffectiveName(fieldName);
         final sqlType = annotation.getFullSqlType();
         // Skip PRIMARY KEY constraints for ALTER TABLE - they need to be handled separately
         final constraints = _getColumnConstraints(annotation, false, true);
@@ -871,7 +869,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     for (final field in fields) {
       final fieldName = field.field.name;
       final annotation = field.annotation ?? const DatabaseColumn();
-      final columnName = annotation.getEffectiveName(fieldName ?? 'unknown');
+      final columnName = annotation.getEffectiveName(fieldName);
       final sqlType = annotation.getFullSqlType();
       // Skip PRIMARY KEY constraints for ALTER TABLE - they need to be handled separately
       final constraints = _getColumnConstraints(annotation, false, true);
@@ -1000,8 +998,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       final fieldNames = fields.map((f) => f.field.name).toSet();
       final columnNames = fields
           .map((f) =>
-              f.annotation?.getEffectiveName(f.field.name ?? 'unknown') ??
-              f.field.name)
+              f.annotation?.getEffectiveName(f.field.name) ?? f.field.name)
           .toSet();
 
       for (final columnName in index.columns) {
@@ -1076,7 +1073,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
 
     try {
       final type = partitionReader.objectValue.type;
-      final typeName = type?.getDisplayString();
+      final typeName = type?.getDisplayString(withNullability: true);
 
       switch (typeName) {
         case 'RangePartition':
