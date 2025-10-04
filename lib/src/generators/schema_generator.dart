@@ -421,8 +421,57 @@ class _ColumnTypeParser {
   }
 
   SqlTypeInfo _parseSimpleType(DartObject typeValue) {
+    // First try to get the sqlType field directly
     final sqlType = typeValue.getField('sqlType')?.toStringValue();
-    return SqlTypeInfo(sqlType ?? 'TEXT');
+    if (sqlType != null && sqlType.isNotEmpty) {
+      return SqlTypeInfo(sqlType);
+    }
+
+    // If that fails, try to match the constant by looking at the declaring library and element
+    final element = typeValue.type?.element;
+    if (element != null) {
+      final elementName = element.name;
+      final libraryUri = element.library?.identifier;
+
+      // Check if this is from the column_types library
+      if ((libraryUri?.contains('column_types') ?? false) ||
+          elementName == '_SimpleColumnType') {
+        // Try to get the sqlType from the object's fields using proper casting
+        final classElement = typeValue.type?.element;
+        if (classElement is ClassElement) {
+          for (final field in classElement.fields) {
+            final fieldName = field.name;
+            if (fieldName == 'sqlType' && fieldName != null) {
+              final fieldValue = typeValue.getField(fieldName);
+              final extractedType = fieldValue?.toStringValue();
+              if (extractedType != null && extractedType.isNotEmpty) {
+                return SqlTypeInfo(extractedType);
+              }
+            }
+          }
+        }
+
+        // If we still can't get it, try to identify the constant by its string representation
+        final typeString = typeValue.toString();
+        if (typeString.contains('UUID')) return const SqlTypeInfo('UUID');
+        if (typeString.contains('BOOLEAN')) return const SqlTypeInfo('BOOLEAN');
+        if (typeString.contains('INTEGER')) return const SqlTypeInfo('INTEGER');
+        if (typeString.contains('BIGINT')) return const SqlTypeInfo('BIGINT');
+        if (typeString.contains('TIMESTAMP WITH TIME ZONE')) {
+          return const SqlTypeInfo('TIMESTAMP WITH TIME ZONE');
+        }
+        if (typeString.contains('TIMESTAMP')) {
+          return const SqlTypeInfo('TIMESTAMP');
+        }
+        if (typeString.contains('DATE')) return const SqlTypeInfo('DATE');
+        if (typeString.contains('TIME')) return const SqlTypeInfo('TIME');
+        if (typeString.contains('TEXT')) return const SqlTypeInfo('TEXT');
+        if (typeString.contains('JSONB')) return const SqlTypeInfo('JSONB');
+        if (typeString.contains('JSON')) return const SqlTypeInfo('JSON');
+      }
+    }
+
+    return const SqlTypeInfo('TEXT');
   }
 
   SqlTypeInfo _parseEnumType(ConstantReader reader) {
@@ -998,7 +1047,10 @@ class SqlStatementBuilder {
   }
 
   String _buildDoBlockColumnAdditions(TableSchema schema) {
-    final lines = [r'DO $$', 'BEGIN'];
+    final buffer = StringBuffer();
+
+    buffer.writeln(r'DO $$');
+    buffer.writeln('BEGIN');
 
     for (final column in schema.columns) {
       final constraints = _ConstraintBuilder(config).build(
@@ -1008,19 +1060,30 @@ class SqlStatementBuilder {
       final constraintStr =
           constraints.isNotEmpty ? ' ${constraints.join(' ')}' : '';
 
-      lines.addAll([
-        '  IF NOT EXISTS (',
-        '    SELECT 1 FROM information_schema.columns',
-        "    WHERE table_name = '${schema.name}' AND column_name = '${column.name}'",
-        '  ) THEN',
-        '    ALTER TABLE ${schema.name} ADD COLUMN ${column.name} ${column.sqlType}$constraintStr;',
-        '  END IF;',
-        '',
-      ]);
+      // Format each column check nicely
+      buffer.writeln('    IF NOT EXISTS (');
+      buffer.writeln('        SELECT 1 FROM information_schema.columns');
+      buffer.writeln("        WHERE table_name = '${schema.name}'");
+      buffer.writeln("          AND column_name = '${column.name}'");
+      buffer.writeln('    ) THEN');
+
+      // Format ALTER TABLE statement with line breaks if too long
+      final alterStatement =
+          'ALTER TABLE ${schema.name} ADD COLUMN ${column.name} ${column.sqlType}$constraintStr;';
+      if (alterStatement.length > 70) {
+        buffer.writeln('        ALTER TABLE ${schema.name}');
+        buffer.writeln(
+            '        ADD COLUMN ${column.name} ${column.sqlType}$constraintStr;');
+      } else {
+        buffer.writeln('        $alterStatement');
+      }
+
+      buffer.writeln('    END IF;');
+      buffer.writeln();
     }
 
-    lines.add(r'END $$;');
-    return lines.join('\n');
+    buffer.writeln(r'END $$;');
+    return buffer.toString();
   }
 
   void buildIndexes(TableSchema schema) {
@@ -1071,17 +1134,206 @@ class SqlStatementBuilder {
   }
 
   String _formatSql(String sql) {
-    return sql
-        .replaceAll(RegExp(r'\s+'), ' ')
-        .replaceAll(';', ';\n')
-        .replaceAll('CREATE TABLE', '\nCREATE TABLE')
-        .replaceAll('CREATE INDEX', '\nCREATE INDEX')
-        .replaceAll('ALTER TABLE', '\nALTER TABLE')
-        .replaceAll('COMMENT ON', '\nCOMMENT ON')
-        .replaceAll('PARTITION BY', '\nPARTITION BY')
-        .replaceAll(RegExp(r'^\s+'), '')
-        .replaceAll(RegExp(r'\n\s*\n'), '\n\n')
-        .trim();
+    return _formatSqlWithLineLength(sql);
+  }
+
+  String _formatSqlWithLineLength(String sql, {int maxLineLength = 80}) {
+    final buffer = StringBuffer();
+    final lines = sql.split('\n');
+
+    for (final line in lines) {
+      final trimmedLine = line.trim();
+      if (trimmedLine.isEmpty) continue;
+
+      // Handle different SQL statement types
+      if (trimmedLine.startsWith('CREATE TABLE')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.startsWith('ALTER TABLE')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.startsWith('CREATE INDEX')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.startsWith('CREATE POLICY')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.startsWith('COMMENT ON')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.contains('IF NOT EXISTS')) {
+        // Handle column additions in DO blocks
+        _formatDoBlockLine(buffer, trimmedLine, maxLineLength);
+      } else if (trimmedLine.startsWith(r'DO $$')) {
+        buffer.writeln(trimmedLine);
+      } else if (trimmedLine.startsWith('BEGIN') ||
+          trimmedLine.startsWith('END')) {
+        buffer.writeln(trimmedLine);
+      } else {
+        // General formatting for other lines
+        _formatGeneralLine(buffer, trimmedLine, maxLineLength);
+      }
+    }
+
+    return buffer.toString().trim();
+  }
+
+  void _formatDoBlockLine(StringBuffer buffer, String line, int maxLineLength) {
+    if (line.length <= maxLineLength) {
+      buffer.writeln(line);
+      return;
+    }
+
+    // Split long IF NOT EXISTS statements
+    if (line.contains('IF NOT EXISTS')) {
+      final parts = line.split('IF NOT EXISTS');
+      if (parts.length == 2) {
+        buffer.writeln(parts[0].trim());
+        buffer.writeln('    IF NOT EXISTS${parts[1]}');
+        return;
+      }
+    }
+
+    // Split on AND, OR, WHERE clauses
+    final splitPoints = [' AND ', ' OR ', ' WHERE ', ' THEN '];
+    for (final splitPoint in splitPoints) {
+      if (line.contains(splitPoint)) {
+        final parts = line.split(splitPoint);
+        for (var i = 0; i < parts.length; i++) {
+          if (i == 0) {
+            buffer.writeln(parts[i].trim());
+          } else {
+            buffer.writeln('    $splitPoint${parts[i].trim()}');
+          }
+        }
+        return;
+      }
+    }
+
+    buffer.writeln(line);
+  }
+
+  void _formatGeneralLine(StringBuffer buffer, String line, int maxLineLength) {
+    if (line.length <= maxLineLength) {
+      buffer.writeln(line);
+      return;
+    }
+
+    // Handle ALTER TABLE CONSTRAINT statements specially
+    if (line.startsWith('ALTER TABLE') && line.contains('CONSTRAINT')) {
+      _formatConstraintStatement(buffer, line);
+      return;
+    }
+
+    // Handle CREATE POLICY statements specially
+    if (line.startsWith('CREATE POLICY')) {
+      _formatPolicyStatement(buffer, line);
+      return;
+    }
+
+    // Try to split on common SQL keywords and operators
+    final splitPoints = [
+      ' REFERENCES ',
+      ' ON DELETE ',
+      ' ON UPDATE ',
+      ' FOREIGN KEY ',
+      ' PRIMARY KEY ',
+      ' CONSTRAINT ',
+      ' DEFAULT ',
+      ' NOT NULL',
+      ' UNIQUE',
+      ', ',
+    ];
+
+    for (final splitPoint in splitPoints) {
+      if (line.contains(splitPoint)) {
+        final parts = line.split(splitPoint);
+        for (var i = 0; i < parts.length; i++) {
+          final part = parts[i].trim();
+          if (i == 0) {
+            buffer.write(part);
+          } else {
+            if (splitPoint == ', ') {
+              buffer.writeln(',');
+              buffer.write('    $part');
+            } else {
+              buffer.writeln();
+              buffer.write('    $splitPoint$part');
+            }
+          }
+        }
+        buffer.writeln();
+        return;
+      }
+    }
+
+    // If no good split point found, just break at maxLineLength
+    var remaining = line;
+    while (remaining.length > maxLineLength) {
+      var breakPoint = remaining.lastIndexOf(' ', maxLineLength);
+      if (breakPoint == -1) breakPoint = maxLineLength;
+
+      buffer.writeln(remaining.substring(0, breakPoint).trim());
+      remaining = '    ${remaining.substring(breakPoint).trim()}';
+    }
+    if (remaining.trim().isNotEmpty) {
+      buffer.writeln(remaining.trim());
+    }
+  }
+
+  void _formatConstraintStatement(StringBuffer buffer, String line) {
+    // ALTER TABLE table_name ADD CONSTRAINT constraint_name FOREIGN KEY (column) REFERENCES other_table(column) ON DELETE action ON UPDATE action;
+    final parts = <String>[];
+    var remaining = line;
+
+    // Split on major parts
+    final markers = [
+      'ADD CONSTRAINT ',
+      'FOREIGN KEY ',
+      'REFERENCES ',
+      'ON DELETE ',
+      'ON UPDATE ',
+    ];
+
+    for (final marker in markers) {
+      if (remaining.contains(marker)) {
+        final index = remaining.indexOf(marker);
+        if (index > 0) {
+          parts.add(remaining.substring(0, index).trim());
+          remaining = marker + remaining.substring(index + marker.length);
+        } else {
+          remaining = remaining.substring(marker.length);
+        }
+        parts.add(marker.trim());
+      }
+    }
+
+    if (remaining.isNotEmpty) {
+      parts.add(remaining.trim());
+    }
+
+    // Output formatted
+    for (var i = 0; i < parts.length; i++) {
+      if (i == 0) {
+        buffer.writeln(parts[i]);
+      } else if (parts[i].startsWith('ADD') ||
+          parts[i].startsWith('FOREIGN') ||
+          parts[i].startsWith('REFERENCES') ||
+          parts[i].startsWith('ON')) {
+        buffer.writeln(
+            '    ${parts[i]} ${i + 1 < parts.length ? parts[++i] : ''}');
+      } else {
+        buffer.write(' ${parts[i]}');
+      }
+    }
+
+    if (!line.endsWith(';')) buffer.writeln();
+  }
+
+  void _formatPolicyStatement(StringBuffer buffer, String line) {
+    // CREATE POLICY policy_name ON table_name FOR operation USING condition;
+    if (line.contains(' USING ')) {
+      final parts = line.split(' USING ');
+      buffer.writeln(parts[0]);
+      buffer.writeln('    USING ${parts[1]}');
+    } else {
+      buffer.writeln(line);
+    }
   }
 }
 
@@ -1095,32 +1347,89 @@ class _CreateTableBuilder {
   final SchemaGeneratorConfig config;
 
   String build(TableSchema schema, {required bool ifNotExists}) {
-    final lines = <String>[];
+    final buffer = StringBuffer();
     final keyword = ifNotExists ? 'CREATE TABLE IF NOT EXISTS' : 'CREATE TABLE';
-    lines.add('$keyword ${schema.name} (');
+
+    // Table creation start
+    buffer.writeln('$keyword ${schema.name} (');
 
     final hasComposite = schema.hasCompositePrimaryKey;
     final columnDefs = schema.columns
         .map((c) => _buildColumnDefinition(c, hasComposite))
         .toList();
 
+    // Format columns with proper spacing and line breaks
     for (var i = 0; i < columnDefs.length; i++) {
       final isLast = i == columnDefs.length - 1;
-      lines.add(columnDefs[i] + (isLast && !hasComposite ? '' : ','));
+      final columnDef = columnDefs[i];
+      final comma = (isLast && !hasComposite) ? '' : ',';
+
+      // If column definition is too long, format it nicely
+      if (columnDef.length > 76) {
+        // Leave space for indentation
+        final parts = _splitColumnDefinition(columnDef);
+        buffer.writeln('${parts[0]}$comma');
+        for (var j = 1; j < parts.length; j++) {
+          buffer.writeln('    ${parts[j]}');
+        }
+      } else {
+        buffer.writeln('$columnDef$comma');
+      }
     }
 
     if (hasComposite) {
-      lines.add('  PRIMARY KEY (${schema.primaryKeyColumns.join(', ')})');
+      final pkColumns = schema.primaryKeyColumns.join(', ');
+      if (pkColumns.length > 70) {
+        buffer.writeln('  PRIMARY KEY (');
+        final columns = schema.primaryKeyColumns;
+        for (var i = 0; i < columns.length; i++) {
+          final isLast = i == columns.length - 1;
+          buffer.writeln('    ${columns[i]}${isLast ? '' : ','}');
+        }
+        buffer.writeln('  )');
+      } else {
+        buffer.writeln('  PRIMARY KEY ($pkColumns)');
+      }
     }
 
-    lines.add(')');
+    buffer.write(')');
 
     if (schema.partitionStrategy != null) {
-      lines.add(schema.partitionStrategy!.toSQL());
+      buffer.writeln();
+      buffer.write(schema.partitionStrategy!.toSQL());
     }
 
-    lines.add(';');
-    return lines.join('\n');
+    buffer.write(';');
+    return buffer.toString();
+  }
+
+  List<String> _splitColumnDefinition(String columnDef) {
+    final parts = <String>[];
+    final splitPoints = [' DEFAULT ', ' REFERENCES ', ' CHECK ', ' UNIQUE'];
+
+    var remaining = columnDef;
+    var basePart = '';
+
+    for (final splitPoint in splitPoints) {
+      if (remaining.contains(splitPoint)) {
+        final splitIndex = remaining.indexOf(splitPoint);
+        basePart = remaining.substring(0, splitIndex);
+        remaining = remaining.substring(splitIndex);
+        break;
+      }
+    }
+
+    if (basePart.isEmpty) {
+      parts.add(columnDef);
+    } else {
+      parts.add(basePart);
+      // Split remaining constraints into separate lines
+      final constraints =
+          remaining.split(RegExp('(?= DEFAULT | REFERENCES | CHECK | UNIQUE)'));
+      parts.addAll(constraints.where((c) => c.trim().isNotEmpty));
+    }
+
+    return parts;
   }
 
   String _buildColumnDefinition(ColumnSchema column, bool hasCompositePk) {

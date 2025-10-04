@@ -5,6 +5,23 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2024-10-04
+
+### Enhanced
+- **🎨 SQL Formatting System**: Completely redesigned SQL formatting with line length management and intelligent formatting
+- **📝 Column Type Parser**: Enhanced column type parsing with better fallback mechanisms and type resolution
+- **🔧 DO Block Formatting**: Improved formatting for column addition DO blocks with proper indentation and line breaks
+- **⚙️ Constraint Statements**: Enhanced formatting for ALTER TABLE CONSTRAINT statements with better readability
+- **🏗️ CREATE TABLE Formatting**: Improved table creation statements with proper column definition formatting
+- **📋 Policy Statement Formatting**: Better formatting for CREATE POLICY statements with USING clauses
+- **🎯 Smart Line Breaking**: Intelligent SQL line breaking based on keywords, operators, and maximum line length
+- **🔤 Column Definition Splitting**: Enhanced column definition formatting with proper constraint placement
+
+### Fixed
+- **🔍 Type Resolution**: Fixed column type resolution issues with proper element name and library identification
+- **📏 Long Statement Handling**: Better handling of long SQL statements with intelligent breaking points
+- **🧹 Code Structure**: Improved code organization with better separation of formatting concerns
+
 ## [1.1.9]
 
 ### Fixed
