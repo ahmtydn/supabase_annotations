@@ -36,6 +36,7 @@ class Event {
     type: ColumnType.timestampWithTimeZone,
     defaultValue: DefaultValue.now,
     isNullable: false,
+    isPrimaryKey: true, // Added to composite primary key for partitioning
   )
   DateTime? createdAt;
 }
@@ -62,6 +63,7 @@ class UserStats {
   @DatabaseColumn(
     type: ColumnType.uuid,
     isNullable: false,
+    isPrimaryKey: true, // Added to composite primary key for partitioning
   )
   String userId = '';
 
@@ -99,6 +101,7 @@ class RegionalData {
   @DatabaseColumn(
     type: ColumnType.text,
     isNullable: false,
+    isPrimaryKey: true,
   )
   String region = '';
 
