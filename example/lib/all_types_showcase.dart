@@ -175,6 +175,7 @@ class AllTypesShowcase {
     this.flags,
     this.config,
     this.createdBy,
+    this.statuses,
   });
 
   /// Factory constructor for creating test instances
@@ -197,8 +198,9 @@ class AllTypesShowcase {
         'badges': ['early_adopter', 'contributor']
       },
       location: {'x': 40.7128, 'y': -74.0060}, // NYC coordinates
-      status: 'active',
+      status: UserStatus.active,
       priority: 'normal',
+      statuses: [UserStatus.active, UserStatus.pending],
     );
   }
 
@@ -452,6 +454,13 @@ class AllTypesShowcase {
   )
   final List<int>? data;
 
+  // Enum array type
+  @DatabaseColumn(
+    type: ColumnType.array(ColumnType.enumType('user_status')),
+    comment: 'Array of user statuses',
+  )
+  final List<UserStatus>? statuses;
+
   // Network types
   @DatabaseColumn(
     type: ColumnType.inet,
@@ -517,7 +526,7 @@ class AllTypesShowcase {
     ],
     comment: 'User account status',
   )
-  final String? status;
+  final UserStatus? status;
 
   @DatabaseColumn(
     type: ColumnType.enumType('priority_level'),

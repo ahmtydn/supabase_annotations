@@ -412,6 +412,7 @@ class _ColumnTypeParser {
       '_CharType' => const SqlTypeInfo('CHAR'),
       '_DecimalType' => const SqlTypeInfo('DECIMAL'),
       '_NumericType' => const SqlTypeInfo('NUMERIC'),
+      '_ArrayType' => _parseArrayType(typeValue),
       '_CustomType' => _parseCustomType(typeValue),
       _ => const SqlTypeInfo('TEXT'),
     };
@@ -433,6 +434,21 @@ class _ColumnTypeParser {
       // ignore
     }
     return const SqlTypeInfo('TEXT');
+  }
+
+  SqlTypeInfo _parseArrayType(DartObject typeValue) {
+    try {
+      final elementTypeField = typeValue.getField('elementType');
+      if (elementTypeField != null) {
+        final elementTypeParser = _ColumnTypeParser();
+        final elementTypeInfo =
+            elementTypeParser.parse(ConstantReader(elementTypeField));
+        return SqlTypeInfo('${elementTypeInfo.baseType}[]');
+      }
+    } on Exception {
+      // ignore
+    }
+    return const SqlTypeInfo('TEXT[]');
   }
 
   SqlTypeInfo _parseCustomType(DartObject typeValue) {
