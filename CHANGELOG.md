@@ -5,6 +5,21 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.7]
+
+### Enhanced
+- **🏗️ Architecture Refactoring**: Complete redesign of schema generation using Strategy Pattern for better maintainability
+- **🔧 Foreign Key System**: Major refactoring of foreign key parsing with improved field-level and class-level annotation support
+- **✅ Validation Pipeline**: New comprehensive schema validation system with detailed error reporting
+- **🛠️ SQL Builder**: Introduction of fluent SQL statement builder for more robust query construction
+- **⚡ Performance**: Enhanced performance through better parsing algorithms and code organization
+
+### Improved
+- **📦 Code Structure**: Better separation of concerns with dedicated parsers, validators, and builders
+- **🛡️ Error Handling**: More detailed error messages and better exception handling throughout the system
+- **🔄 Strategy Pattern**: Flexible SQL generation strategies for different migration modes
+- **📊 Schema Processing**: Improved schema parsing with better type safety and null handling
+
 ## [1.1.6]
 
 ### Fixed
