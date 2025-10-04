@@ -5,6 +5,19 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.6]
+
+### Fixed
+- **🔧 Analyzer Compatibility**: Updated codebase to be compatible with analyzer ^8.1.1
+- **📚 API Migration**: Replaced deprecated `LibraryElement.topLevelElements` with fragment-based approach using `library.library.classes`
+- **🛡️ Null Safety**: Fixed null safety issues with `getEffectiveName` method calls by adding proper null checks
+- **📊 Metadata Handling**: Resolved metadata iteration issues due to analyzer API changes
+- **⚡ Build Performance**: Improved build system compatibility with latest analyzer versions
+
+### Changed
+- **📦 Dependencies**: Updated analyzer dependency to ^8.1.1 for latest Dart SDK compatibility
+- **🏗️ Code Generation**: Enhanced robustness of schema generation with better error handling
+
 ## [1.1.5]
 
 ### Fixed

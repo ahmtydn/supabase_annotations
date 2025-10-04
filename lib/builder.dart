@@ -37,8 +37,7 @@ class SupabaseSchemaBuilder implements Builder {
   static const String _sqlExtension = '.schema.sql';
 
   final SchemaGeneratorConfig _config;
-  final TypeChecker _tableChecker =
-      const TypeChecker.fromRuntime(DatabaseTable);
+  final TypeChecker _tableChecker = const TypeChecker.typeNamed(DatabaseTable);
 
   @override
   Map<String, List<String>> get buildExtensions => const {
@@ -72,8 +71,7 @@ class SupabaseSchemaBuilder implements Builder {
 
   /// Finds all classes annotated with [DatabaseTable] in the library.
   List<ClassElement> _findAnnotatedElements(LibraryElement library) {
-    return library.topLevelElements
-        .whereType<ClassElement>()
+    return library.library.classes
         .where(_tableChecker.hasAnnotationOfExact)
         .toList();
   }
