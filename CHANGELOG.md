@@ -5,6 +5,18 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.9]
+
+### Fixed
+- **🔐 RLS Policy SQL Generation**: Fixed PostgreSQL syntax error in CREATE POLICY statements when no roles specified
+- **📋 RLS Policy Annotation Parsing**: Updated parser to correctly handle new RLSPolicy field names (type, condition, checkCondition)
+- **🏗️ DatabaseTable Policy Support**: Added support for parsing policies defined within @DatabaseTable annotation
+- **⚡ Empty Roles Handling**: Improved SQL generation to omit TO clause when no roles are specified
+
+### Enhanced
+- **🛠️ Schema Generator**: Better handling of both standalone @RLSPolicy annotations and embedded policies
+- **✅ SQL Validation**: All generated RLS policy SQL now follows correct PostgreSQL syntax
+
 ## [1.1.8]
 
 ### Fixed

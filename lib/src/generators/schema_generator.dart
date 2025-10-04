@@ -181,11 +181,13 @@ class RLSPolicy {
 
   String generateSql(String tableName) {
     final commandStr = _commandToSql(command);
-    final rolesStr = roles.join(', ');
     final withCheckClause = withCheck != null ? ' WITH CHECK ($withCheck)' : '';
 
+    // Handle roles - if empty, omit TO clause to allow all roles
+    final rolesClause = roles.isNotEmpty ? ' TO ${roles.join(', ')}' : '';
+
     return 'CREATE POLICY $name ON $tableName '
-        'FOR $commandStr TO $rolesStr '
+        'FOR $commandStr$rolesClause '
         'USING ($condition)$withCheckClause;';
   }
 
@@ -539,10 +541,24 @@ class _PolicyParser {
       if (annotation == null) continue;
 
       final typeName = annotation.type?.element?.name;
-      if (typeName != 'RLSPolicy') continue;
 
-      final reader = ConstantReader(annotation);
-      policies.add(_parsePolicyAnnotation(reader));
+      // Parse direct @RLSPolicy annotations
+      if (typeName == 'RLSPolicy') {
+        final reader = ConstantReader(annotation);
+        policies.add(_parsePolicyAnnotation(reader));
+      }
+
+      // Parse policies from @DatabaseTable annotation
+      if (typeName == 'DatabaseTable') {
+        final reader = ConstantReader(annotation);
+        final tablePolicies = reader.peek('policies')?.listValue;
+        if (tablePolicies != null) {
+          for (final policyValue in tablePolicies) {
+            final policyReader = ConstantReader(policyValue);
+            policies.add(_parsePolicyAnnotation(policyReader));
+          }
+        }
+      }
     }
 
     return policies;
@@ -550,7 +566,7 @@ class _PolicyParser {
 
   RLSPolicy _parsePolicyAnnotation(ConstantReader reader) {
     final name = reader.peek('name')?.stringValue ?? 'unnamed_policy';
-    final command = _parseCommand(reader.peek('command'));
+    final command = _parseTypeToCommand(reader.peek('type'));
     final roles = reader
             .peek('roles')
             ?.listValue
@@ -558,21 +574,21 @@ class _PolicyParser {
             .whereType<String>()
             .toList() ??
         ['PUBLIC'];
-    final using = reader.peek('using')?.stringValue ?? 'true';
-    final withCheck = reader.peek('withCheck')?.stringValue;
+    final condition = reader.peek('condition')?.stringValue ?? 'true';
+    final checkCondition = reader.peek('checkCondition')?.stringValue;
     final comment = reader.peek('comment')?.stringValue;
 
     return RLSPolicy(
       name: name,
       command: command,
       roles: roles,
-      condition: using,
-      withCheck: withCheck,
+      condition: condition,
+      withCheck: checkCondition,
       comment: comment,
     );
   }
 
-  PolicyCommand _parseCommand(ConstantReader? reader) {
+  PolicyCommand _parseTypeToCommand(ConstantReader? reader) {
     if (reader == null || reader.isNull) return PolicyCommand.all;
 
     final enumValue = reader.objectValue;
