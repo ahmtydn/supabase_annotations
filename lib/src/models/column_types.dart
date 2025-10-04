@@ -8,7 +8,35 @@ import 'package:meta/meta.dart';
 
 /// Represents a PostgreSQL column type with validation and metadata.
 @immutable
-class ColumnType {
+abstract class ColumnType {
+  /// Variable-length character string with length limit.
+  /// Maps to Dart [String].
+  const factory ColumnType.varchar([int? length]) = _VarcharType;
+
+  /// Fixed-length character string.
+  /// Maps to Dart [String].
+  const factory ColumnType.char(int length) = _CharType;
+
+  /// Exact numeric with precision and scale.
+  /// Maps to Dart [num].
+  const factory ColumnType.decimal([int? precision, int? scale]) = _DecimalType;
+
+  /// Alias for decimal.
+  /// Maps to Dart [num].
+  const factory ColumnType.numeric([int? precision, int? scale]) = _NumericType;
+
+  /// Array of the specified type.
+  /// Maps to Dart [List].
+  const factory ColumnType.array(ColumnType elementType) = _ArrayType;
+
+  /// Custom enumeration type.
+  /// Maps to Dart enum types.
+  const factory ColumnType.enumType(String enumName) = _EnumType;
+
+  /// Creates a custom column type with specified SQL type.
+  const factory ColumnType.custom(String sqlType, {Type? dartType}) =
+      _CustomType;
+
   /// Creates a new column type with the specified SQL type and constraints.
   const ColumnType._(
     this.sqlType, {
@@ -53,87 +81,43 @@ class ColumnType {
 
   /// Variable-length character string.
   /// Maps to Dart [String].
-  static const text = ColumnType._('TEXT', dartType: String);
-
-  /// Variable-length character string with length limit.
-  /// Maps to Dart [String].
-  static ColumnType varchar([int? length]) => ColumnType._(
-        length != null ? 'VARCHAR($length)' : 'VARCHAR',
-        dartType: String,
-        supportsLength: true,
-        maxLength: 65535,
-        minLength: 1,
-      );
-
-  /// Fixed-length character string.
-  /// Maps to Dart [String].
-  static ColumnType char(int length) => ColumnType._(
-        'CHAR($length)',
-        dartType: String,
-        supportsLength: true,
-        defaultLength: length,
-        maxLength: 255,
-        minLength: 1,
-      );
+  static const text = _SimpleColumnType('TEXT', dartType: String);
 
   // Numeric Types
 
   /// 32-bit signed integer (-2^31 to 2^31-1).
   /// Maps to Dart [int].
   static const integer =
-      ColumnType._('INTEGER', dartType: int, isNumeric: true);
+      _SimpleColumnType('INTEGER', dartType: int, isNumeric: true);
 
   /// 64-bit signed integer.
   /// Maps to Dart [int].
-  static const bigint = ColumnType._('BIGINT', dartType: int, isNumeric: true);
+  static const bigint =
+      _SimpleColumnType('BIGINT', dartType: int, isNumeric: true);
 
   /// 16-bit signed integer.
   /// Maps to Dart [int].
   static const smallint =
-      ColumnType._('SMALLINT', dartType: int, isNumeric: true);
+      _SimpleColumnType('SMALLINT', dartType: int, isNumeric: true);
 
   /// Auto-incrementing 32-bit integer.
   /// Maps to Dart [int].
-  static const serial = ColumnType._('SERIAL', dartType: int, isNumeric: true);
+  static const serial =
+      _SimpleColumnType('SERIAL', dartType: int, isNumeric: true);
 
   /// Auto-incrementing 64-bit integer.
   /// Maps to Dart [int].
   static const bigserial =
-      ColumnType._('BIGSERIAL', dartType: int, isNumeric: true);
-
-  /// Exact numeric with precision and scale.
-  /// Maps to Dart [num].
-  static ColumnType decimal([int? precision, int? scale]) => ColumnType._(
-        precision != null && scale != null
-            ? 'DECIMAL($precision,$scale)'
-            : precision != null
-                ? 'DECIMAL($precision)'
-                : 'DECIMAL',
-        dartType: num,
-        isNumeric: true,
-        supportsPrecision: true,
-      );
-
-  /// Alias for decimal.
-  /// Maps to Dart [num].
-  static ColumnType numeric([int? precision, int? scale]) => ColumnType._(
-        precision != null && scale != null
-            ? 'NUMERIC($precision,$scale)'
-            : precision != null
-                ? 'NUMERIC($precision)'
-                : 'NUMERIC',
-        dartType: num,
-        isNumeric: true,
-        supportsPrecision: true,
-      );
+      _SimpleColumnType('BIGSERIAL', dartType: int, isNumeric: true);
 
   /// Single precision floating-point.
   /// Maps to Dart [double].
-  static const real = ColumnType._('REAL', dartType: double, isNumeric: true);
+  static const real =
+      _SimpleColumnType('REAL', dartType: double, isNumeric: true);
 
   /// Double precision floating-point.
   /// Maps to Dart [double].
-  static const doublePrecision = ColumnType._(
+  static const doublePrecision = _SimpleColumnType(
     'DOUBLE PRECISION',
     dartType: double,
     isNumeric: true,
@@ -143,38 +127,38 @@ class ColumnType {
 
   /// Boolean value (true/false).
   /// Maps to Dart [bool].
-  static const boolean = ColumnType._('BOOLEAN', dartType: bool);
+  static const boolean = _SimpleColumnType('BOOLEAN', dartType: bool);
 
   // Date/Time Types
 
   /// Date (year, month, day).
   /// Maps to Dart [DateTime].
-  static const date = ColumnType._('DATE', dartType: DateTime);
+  static const date = _SimpleColumnType('DATE', dartType: DateTime);
 
   /// Time of day (no date).
   /// Maps to Dart [DateTime].
-  static const time = ColumnType._('TIME', dartType: DateTime);
+  static const time = _SimpleColumnType('TIME', dartType: DateTime);
 
   /// Date and time (no timezone).
   /// Maps to Dart [DateTime].
-  static const timestamp = ColumnType._('TIMESTAMP', dartType: DateTime);
+  static const timestamp = _SimpleColumnType('TIMESTAMP', dartType: DateTime);
 
   /// Date and time with timezone.
   /// Maps to Dart [DateTime].
-  static const timestampWithTimeZone = ColumnType._(
+  static const timestampWithTimeZone = _SimpleColumnType(
     'TIMESTAMP WITH TIME ZONE',
     dartType: DateTime,
   );
 
   /// Time interval.
   /// Maps to Dart [Duration].
-  static const interval = ColumnType._('INTERVAL', dartType: Duration);
+  static const interval = _SimpleColumnType('INTERVAL', dartType: Duration);
 
   // UUID Type
 
   /// Universally unique identifier.
   /// Maps to Dart [String].
-  static const uuid = ColumnType._(
+  static const uuid = _SimpleColumnType(
     'UUID',
     dartType: String,
     validationPattern: r'''
@@ -185,32 +169,25 @@ class ColumnType {
 
   /// JSON data (stored as text).
   /// Maps to Dart [Map<String, dynamic>].
-  static const json = ColumnType._('JSON', dartType: Map);
+  static const json = _SimpleColumnType('JSON', dartType: Map);
 
   /// Binary JSON data (more efficient).
   /// Maps to Dart [Map<String, dynamic>].
-  static const jsonb = ColumnType._('JSONB', dartType: Map);
+  static const jsonb = _SimpleColumnType('JSONB', dartType: Map);
 
   // Array Types
-
-  /// Array of the specified type.
-  /// Maps to Dart [List].
-  static ColumnType array(ColumnType elementType) => ColumnType._(
-        '${elementType.sqlType}[]',
-        dartType: List,
-      );
 
   // Binary Types
 
   /// Binary data.
   /// Maps to Dart [List<int>].
-  static const bytea = ColumnType._('BYTEA', dartType: List);
+  static const bytea = _SimpleColumnType('BYTEA', dartType: List);
 
   // Network Types
 
   /// IPv4 or IPv6 network address.
   /// Maps to Dart [String].
-  static const inet = ColumnType._(
+  static const inet = _SimpleColumnType(
     'INET',
     dartType: String,
     validationPattern: r'''
@@ -219,11 +196,11 @@ class ColumnType {
 
   /// Network address with subnet mask.
   /// Maps to Dart [String].
-  static const cidr = ColumnType._('CIDR', dartType: String);
+  static const cidr = _SimpleColumnType('CIDR', dartType: String);
 
   /// MAC address.
   /// Maps to Dart [String].
-  static const macaddr = ColumnType._(
+  static const macaddr = _SimpleColumnType(
     'MACADDR',
     dartType: String,
     validationPattern: r'^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$',
@@ -233,31 +210,21 @@ class ColumnType {
 
   /// Point on a plane (x,y).
   /// Maps to Dart [Map<String, double>].
-  static const point = ColumnType._('POINT', dartType: Map);
+  static const point = _SimpleColumnType('POINT', dartType: Map);
 
   /// Line segment.
   /// Maps to Dart [Map<String, dynamic>].
-  static const line = ColumnType._('LINE', dartType: Map);
+  static const line = _SimpleColumnType('LINE', dartType: Map);
 
   /// Rectangle.
   /// Maps to Dart [Map<String, dynamic>].
-  static const box = ColumnType._('BOX', dartType: Map);
+  static const box = _SimpleColumnType('BOX', dartType: Map);
 
   /// Circle.
   /// Maps to Dart [Map<String, dynamic>].
-  static const circle = ColumnType._('CIRCLE', dartType: Map);
+  static const circle = _SimpleColumnType('CIRCLE', dartType: Map);
 
   // Custom enum type
-
-  /// Custom enumeration type.
-  /// Maps to Dart enum types.
-  static ColumnType enumType(String enumName) => ColumnType._(enumName);
-
-  /// Creates a custom column type with specified SQL type.
-  static ColumnType custom(String sqlType, {Type? dartType}) => ColumnType._(
-        sqlType,
-        dartType: dartType,
-      );
 
   /// Validates if a Dart value is compatible with this column type.
   bool isValidDartValue(dynamic value) {
@@ -303,4 +270,95 @@ class ColumnType {
   /// Hash code for this column type.
   @override
   int get hashCode => sqlType.hashCode;
+}
+
+// Implementation classes for factory constructors
+
+/// Implementation for VARCHAR column type.
+class _VarcharType extends ColumnType {
+  const _VarcharType([int? length])
+      : super._(
+          length != null ? 'VARCHAR($length)' : 'VARCHAR',
+          dartType: String,
+          supportsLength: true,
+          maxLength: 65535,
+          minLength: 1,
+        );
+}
+
+/// Implementation for CHAR column type.
+class _CharType extends ColumnType {
+  const _CharType(int length)
+      : super._(
+          'CHAR($length)',
+          dartType: String,
+          supportsLength: true,
+          defaultLength: length,
+          maxLength: 255,
+          minLength: 1,
+        );
+}
+
+/// Implementation for DECIMAL column type.
+class _DecimalType extends ColumnType {
+  const _DecimalType([int? precision, int? scale])
+      : super._(
+          precision != null && scale != null
+              ? 'DECIMAL($precision,$scale)'
+              : precision != null
+                  ? 'DECIMAL($precision)'
+                  : 'DECIMAL',
+          dartType: num,
+          isNumeric: true,
+          supportsPrecision: true,
+        );
+}
+
+/// Implementation for NUMERIC column type.
+class _NumericType extends ColumnType {
+  const _NumericType([int? precision, int? scale])
+      : super._(
+          precision != null && scale != null
+              ? 'NUMERIC($precision,$scale)'
+              : precision != null
+                  ? 'NUMERIC($precision)'
+                  : 'NUMERIC',
+          dartType: num,
+          isNumeric: true,
+          supportsPrecision: true,
+        );
+}
+
+/// Implementation for array column type.
+class _ArrayType extends ColumnType {
+  const _ArrayType(this.elementType)
+      : super._(
+          'ARRAY',
+          dartType: List,
+        );
+
+  final ColumnType elementType;
+
+  @override
+  String get sqlType => '${elementType.sqlType}[]';
+}
+
+/// Implementation for enum column type.
+class _EnumType extends ColumnType {
+  const _EnumType(super.enumName) : super._();
+}
+
+/// Implementation for custom column type.
+class _CustomType extends ColumnType {
+  const _CustomType(super.sqlType, {super.dartType}) : super._();
+}
+
+/// Implementation for simple column types (const types without parameters).
+class _SimpleColumnType extends ColumnType {
+  const _SimpleColumnType(
+    super.sqlType, {
+    super.dartType,
+    super.isNumeric,
+    super.validationPattern,
+  }) : super._();
 }

@@ -5,6 +5,21 @@ All notable changes to the Supabase Annotations package will be documented in th
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.5]
+
+### Fixed
+- **🔧 Constant Expressions**: Resolved "Methods can't be invoked in constant expressions" errors for `ColumnType` factory constructors
+- **📝 Default Values**: Fixed `DefaultValue.jsonObject()`, `DefaultValue.nextVal()`, and `DefaultValue.expression()` to work in const contexts
+- **✅ Validators**: Removed dynamic types and made all validators properly generic typed (`EnumValidator`, `AndValidator`, `OrValidator`)
+- **🎯 Type Safety**: Complete elimination of `dynamic` types throughout the validator system
+- **🚫 Assert Issues**: Fixed `EnumValidator` const assertion that accessed `.length` property in constant expressions
+
+### Improved
+- **🔄 Factory Constructors**: Converted static methods to const factory constructors for better const expression support
+- **📦 Generic Types**: All validators now use proper generic type constraints instead of `dynamic`
+- **🏗️ Architecture**: Better separation of concerns with implementation classes for different column and default value types
+- **⚡ Performance**: Reduced runtime type checking by leveraging compile-time type safety
+
 ## [1.1.4]
 
 ### Improved

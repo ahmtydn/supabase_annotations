@@ -50,6 +50,47 @@ abstract class DefaultValue {
   /// ```
   const factory DefaultValue.boolean({required bool value}) = _BooleanDefault;
 
+  /// Custom JSON object default.
+  ///
+  /// **Parameters:**
+  /// - [jsonString]: The JSON string to use as default
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.jsonObject('{"active": true, "count": 0}')
+  /// ```
+  const factory DefaultValue.jsonObject(String jsonString) = _JsonObjectDefault;
+
+  /// Next value from a sequence.
+  ///
+  /// **Parameters:**
+  /// - [sequenceName]: The name of the sequence
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.nextVal('user_id_seq') // DEFAULT nextval('user_id_seq')
+  /// DefaultValue.nextVal('order_number_seq')
+  /// ```
+  const factory DefaultValue.nextVal(String sequenceName) = _NextValDefault;
+
+  /// Custom SQL expression as default.
+  ///
+  /// Use this for complex default values that aren't covered by the
+  /// predefined options.
+  ///
+  /// **Parameters:**
+  /// - [expression]: The SQL expression to use
+  /// - [description]: Optional description of what the expression does
+  ///
+  /// **Example:**
+  /// ```dart
+  /// DefaultValue.expression('EXTRACT(YEAR FROM NOW())', 'Current year')
+  /// DefaultValue.expression('RANDOM() * 100', 'Random number 0-100')
+  /// DefaultValue.expression("CONCAT('user_', nextval('user_seq'))", 'Generated username')
+  /// ```
+  const factory DefaultValue.expression(String expression,
+      [String? description]) = _ExpressionDefault;
+
   /// Creates a default value with the specified SQL expression.
   const DefaultValue._(this.sqlExpression, this.description);
 
@@ -189,21 +230,6 @@ abstract class DefaultValue {
 
   // Sequence defaults
 
-  /// Next value from a sequence.
-  ///
-  /// **Parameters:**
-  /// - [sequenceName]: The name of the sequence
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.nextVal('user_id_seq') // DEFAULT nextval('user_id_seq')
-  /// DefaultValue.nextVal('order_number_seq')
-  /// ```
-  static DefaultValue nextVal(String sequenceName) => _FunctionDefault(
-        "nextval('$sequenceName')",
-        'Next value from sequence: $sequenceName',
-      );
-
   /// Auto-incrementing integer (SERIAL).
   ///
   /// Creates a sequence automatically and uses it for default values.
@@ -252,44 +278,9 @@ abstract class DefaultValue {
     'Empty JSON array',
   );
 
-  /// Custom JSON object default.
-  ///
-  /// **Parameters:**
-  /// - [jsonString]: The JSON string to use as default
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.jsonObject('{"active": true, "count": 0}')
-  /// ```
-  static DefaultValue jsonObject(String jsonString) => _LiteralDefault(
-        "'$jsonString'::jsonb",
-        'JSON object: $jsonString',
-      );
-
   // Mathematical defaults
 
   // Custom expression
-
-  /// Custom SQL expression as default.
-  ///
-  /// Use this for complex default values that aren't covered by the
-  /// predefined options.
-  ///
-  /// **Parameters:**
-  /// - [expression]: The SQL expression to use
-  /// - [description]: Optional description of what the expression does
-  ///
-  /// **Example:**
-  /// ```dart
-  /// DefaultValue.expression('EXTRACT(YEAR FROM NOW())', 'Current year')
-  /// DefaultValue.expression('RANDOM() * 100', 'Random number 0-100')
-  /// DefaultValue.expression("CONCAT('user_', nextval('user_seq'))", 'Generated username')
-  /// ```
-  static DefaultValue expression(String expression, [String? description]) =>
-      _CustomDefault(
-        expression,
-        description ?? 'Custom expression: $expression',
-      );
 
   // Validation methods
 
@@ -398,11 +389,6 @@ class _FunctionDefault extends DefaultValue {
   const _FunctionDefault(super.expression, super.description) : super._();
 }
 
-/// Implementation for custom expression default values.
-class _CustomDefault extends DefaultValue {
-  const _CustomDefault(super.expression, super.description) : super._();
-}
-
 /// Implementation for string default values.
 class _StringDefault extends DefaultValue {
   const _StringDefault(String value)
@@ -419,4 +405,23 @@ class _NumericDefault extends DefaultValue {
 class _BooleanDefault extends DefaultValue {
   const _BooleanDefault({required bool value})
       : super._('$value', 'Boolean literal: $value');
+}
+
+/// Implementation for JSON object default values.
+class _JsonObjectDefault extends DefaultValue {
+  const _JsonObjectDefault(String jsonString)
+      : super._("'$jsonString'::jsonb", 'JSON object: $jsonString');
+}
+
+/// Implementation for sequence nextVal default values.
+class _NextValDefault extends DefaultValue {
+  const _NextValDefault(String sequenceName)
+      : super._("nextval('$sequenceName')",
+            'Next value from sequence: $sequenceName');
+}
+
+/// Implementation for custom expression default values.
+class _ExpressionDefault extends DefaultValue {
+  const _ExpressionDefault(String expression, [String? description])
+      : super._(expression, description ?? 'Custom expression: $expression');
 }

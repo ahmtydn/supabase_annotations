@@ -437,10 +437,10 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
       'JSONB' => ColumnType.jsonb,
       'JSON' => ColumnType.json,
       'BYTEA' => ColumnType.bytea,
-      String() when sqlType.startsWith('VARCHAR') => ColumnType.varchar(),
-      String() when sqlType.startsWith('CHAR') => ColumnType.char(1),
-      String() when sqlType.startsWith('DECIMAL') => ColumnType.decimal(),
-      String() when sqlType.startsWith('NUMERIC') => ColumnType.decimal(),
+      String() when sqlType.startsWith('VARCHAR') => const ColumnType.varchar(),
+      String() when sqlType.startsWith('CHAR') => const ColumnType.char(1),
+      String() when sqlType.startsWith('DECIMAL') => const ColumnType.decimal(),
+      String() when sqlType.startsWith('NUMERIC') => const ColumnType.decimal(),
       _ => ColumnType.text, // Default fallback
     };
   }
@@ -928,11 +928,11 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
   }
 
   /// Parses validators from annotation list.
-  List<Validator>? _parseValidators(ConstantReader? validatorsReader) {
+  List<Validator<dynamic>>? _parseValidators(ConstantReader? validatorsReader) {
     if (validatorsReader == null) return null;
 
     final validatorsList = validatorsReader.listValue;
-    if (validatorsList.isEmpty) return <Validator>[];
+    if (validatorsList.isEmpty) return <Validator<dynamic>>[];
 
     // For now, we'll return an empty list since we can't easily instantiate
     // validators from compile-time constants. In practice, this would require
@@ -940,7 +940,7 @@ class SupabaseSchemaGenerator extends GeneratorForAnnotation<DatabaseTable> {
     // IMPLEMENTATION NOTE: Validator parsing from annotations requires
     // runtime analysis of const expressions which is complex in build_runner.
     // Future versions could implement this using source_gen's analyzer APIs.
-    return <Validator>[];
+    return <Validator<dynamic>>[];
   }
 
   /// Generates CHECK constraint strings from validators.

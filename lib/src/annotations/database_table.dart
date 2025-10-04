@@ -323,7 +323,7 @@ class DatabaseTable {
   /// )
   /// class User { ... }
   /// ```
-  final List<Validator> validationRules;
+  final List<Validator<dynamic>> validationRules;
 
   /// Validates the table configuration.
   ///

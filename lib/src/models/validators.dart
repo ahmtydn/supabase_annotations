@@ -10,14 +10,14 @@ library;
 /// Validators provide type-safe validation rules that can be applied to
 /// database column values. They are used to generate CHECK constraints
 /// and provide client-side validation.
-abstract class Validator {
+abstract class Validator<T> {
   /// Creates a new validator.
   const Validator();
 
   /// Validates the given value.
   ///
   /// Returns `true` if the value is valid, `false` otherwise.
-  bool validate(dynamic value);
+  bool validate(T value);
 
   /// Returns the SQL CHECK constraint expression for this validator.
   ///
@@ -42,7 +42,7 @@ abstract class Validator {
 /// )
 /// int age;
 /// ```
-class RangeValidator extends Validator {
+class RangeValidator extends Validator<num> {
   /// Creates a range validator.
   ///
   /// At least one of [min] or [max] must be specified.
@@ -59,14 +59,7 @@ class RangeValidator extends Validator {
   final num? max;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! num) {
-      return false;
-    }
-
+  bool validate(num value) {
     if (min != null && value < min!) {
       return false;
     }
@@ -118,7 +111,7 @@ class RangeValidator extends Validator {
 /// )
 /// String username;
 /// ```
-class LengthValidator extends Validator {
+class LengthValidator extends Validator<String> {
   /// Creates a length validator.
   ///
   /// At least one of [min] or [max] must be specified.
@@ -135,14 +128,7 @@ class LengthValidator extends Validator {
   final int? max;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     final length = value.length;
     if (min != null && length < min!) {
       return false;
@@ -188,7 +174,7 @@ class LengthValidator extends Validator {
 /// )
 /// String username;
 /// ```
-class PatternValidator extends Validator {
+class PatternValidator extends Validator<String> {
   /// Creates a pattern validator.
   const PatternValidator(this.pattern, [this.customErrorMessage]);
 
@@ -199,14 +185,7 @@ class PatternValidator extends Validator {
   final String? customErrorMessage;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     final regex = RegExp(pattern);
     return regex.hasMatch(value);
   }
@@ -237,22 +216,20 @@ class PatternValidator extends Validator {
 /// )
 /// String status;
 /// ```
-class EnumValidator extends Validator {
+class EnumValidator<T> extends Validator<T> {
   /// Creates an enum validator.
-  const EnumValidator(this.allowedValues)
-      : assert(
-          allowedValues.length > 0,
-          'At least one allowed value must be specified',
-        );
+  const EnumValidator(this.allowedValues);
 
   /// The list of allowed values.
-  final List<dynamic> allowedValues;
+  final List<T> allowedValues;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
+  bool validate(T value) {
+    // Runtime validation for empty list
+    if (allowedValues.isEmpty) {
+      throw ArgumentError('At least one allowed value must be specified');
     }
+
     return allowedValues.contains(value);
   }
 
@@ -281,7 +258,7 @@ class EnumValidator extends Validator {
 /// )
 /// String email;
 /// ```
-class EmailValidator extends Validator {
+class EmailValidator extends Validator<String> {
   /// Creates an email validator.
   const EmailValidator();
 
@@ -290,14 +267,7 @@ class EmailValidator extends Validator {
       r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$';
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     final regex = RegExp(_emailPattern);
     return regex.hasMatch(value);
   }
@@ -325,7 +295,7 @@ class EmailValidator extends Validator {
 /// )
 /// String website;
 /// ```
-class UrlValidator extends Validator {
+class UrlValidator extends Validator<String> {
   /// Creates a URL validator.
   const UrlValidator();
 
@@ -333,14 +303,7 @@ class UrlValidator extends Validator {
   static const String _urlPattern = r'^https?:\/\/[^\s]+$';
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     final regex = RegExp(_urlPattern);
     return regex.hasMatch(value);
   }
@@ -368,7 +331,7 @@ class UrlValidator extends Validator {
 /// )
 /// String name;
 /// ```
-class AlphaValidator extends Validator {
+class AlphaValidator extends Validator<String> {
   /// Creates an alpha validator.
   const AlphaValidator({this.allowSpaces = false});
 
@@ -376,14 +339,7 @@ class AlphaValidator extends Validator {
   final bool allowSpaces;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     final pattern = allowSpaces ? r'^[a-zA-Z\s]+$' : r'^[a-zA-Z]+$';
     final regex = RegExp(pattern);
     return regex.hasMatch(value);
@@ -417,7 +373,7 @@ class AlphaValidator extends Validator {
 /// )
 /// String code;
 /// ```
-class AlphanumericValidator extends Validator {
+class AlphanumericValidator extends Validator<String> {
   /// Creates an alphanumeric validator.
   const AlphanumericValidator({
     this.allowSpaces = false,
@@ -431,14 +387,7 @@ class AlphanumericValidator extends Validator {
   final bool allowUnderscores;
 
   @override
-  bool validate(dynamic value) {
-    if (value == null) {
-      return true; // Null values are handled by nullable constraint
-    }
-    if (value is! String) {
-      return false;
-    }
-
+  bool validate(String value) {
     var pattern = '^[a-zA-Z0-9';
     if (allowSpaces) pattern += r'\s';
     if (allowUnderscores) pattern += '_';
@@ -490,7 +439,7 @@ class AlphanumericValidator extends Validator {
 /// )
 /// String password;
 /// ```
-class AndValidator extends Validator {
+class AndValidator<T> extends Validator<T> {
   /// Creates an AND validator.
   const AndValidator(this.validators)
       : assert(
@@ -499,10 +448,10 @@ class AndValidator extends Validator {
         );
 
   /// The list of validators that must all pass.
-  final List<Validator> validators;
+  final List<Validator<T>> validators;
 
   @override
-  bool validate(dynamic value) {
+  bool validate(T value) {
     return validators.every((validator) => validator.validate(value));
   }
 
@@ -520,11 +469,7 @@ class AndValidator extends Validator {
 
   @override
   String get errorMessage {
-    final failed = validators.where((v) => !v.validate(null)).toList();
-    if (failed.isEmpty) {
-      return 'Validation failed';
-    }
-    return failed.map((v) => v.errorMessage).join('; ');
+    return 'All validation rules must pass: ${validators.map((v) => v.description).join('; ')}';
   }
 }
 
@@ -542,7 +487,7 @@ class AndValidator extends Validator {
 /// )
 /// String contact;
 /// ```
-class OrValidator extends Validator {
+class OrValidator<T> extends Validator<T> {
   /// Creates an OR validator.
   const OrValidator(this.validators)
       : assert(
@@ -551,10 +496,10 @@ class OrValidator extends Validator {
         );
 
   /// The list of validators where at least one must pass.
-  final List<Validator> validators;
+  final List<Validator<T>> validators;
 
   @override
-  bool validate(dynamic value) {
+  bool validate(T value) {
     return validators.any((validator) => validator.validate(value));
   }
 

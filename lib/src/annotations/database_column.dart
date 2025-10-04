@@ -245,7 +245,7 @@ class DatabaseColumn {
   /// )
   /// int age;
   /// ```
-  final List<Validator> validators;
+  final List<Validator<dynamic>> validators;
 
   /// List of CHECK constraint expressions.
   ///
